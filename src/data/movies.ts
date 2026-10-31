@@ -32,38 +32,8 @@ export const INITIAL_MOVIES: MovieTemplate[] = [
     }
   },
   {
-    "id": "movie-slot-1793477070559",
-    "tapeNumber": "QUADRO 2 // GALERIA DA MANSÃO",
-    "title": "The Dark and the Wicked",
-    "originalTitle": "The Dark and the Wicked",
-    "year": 2020,
-    "duration": "1h 35min",
-    "subgenre": "Terror Psicológico & Mistério",
-    "fearLevel": 2,
-    "bpm": 98,
-    "tags": [
-      "Psicológico",
-      "Mistério",
-      "Sobrenatural"
-    ],
-    "synopsis": "Em uma fazenda isolada no interior do Texas, dois irmãos voltam para casa quando o pai adoece gravemente. A mãe, perturbada, implora para que eles não fiquem antes de tirar a própria vida, deixando os filhos cercados por uma entidade maligna e implacável que se alimenta do luto e da dor da família.",
-    "whyIChoseIt": "Escolhi esse para assistirmos juntinhos hoje à noite <3",
-    "curseWhisper": "VOCÊ OUVIU ESSE BARULHO NO CORREDOR?",
-    "posterArt": "silent_fog",
-    "customPosterUrl": "https://m.media-amazon.com/images/M/MV5BMDllNzZjY2MtNWVjNC00YjlhLWI2MzItNjJjMmY4M2JlMTI0XkEyXkFqcGc@._V1_SX600.jpg",
-    "ritualVariation": "vhs_ring",
-    "imdbRating": "6.1",
-    "aiVerdict": "Análise IA (52% de Intensidade • Pico de 98 BPM): Filme marcado por terror psicológico profundo (70%) e alta tensão e sustos iminentes (42%). Classificado como Nível 2/5 no Terrômetro.",
-    "aiBreakdown": {
-      "psychological": 70,
-      "supernatural": 41,
-      "tension": 42,
-      "visceral": 25
-    }
-  },
-  {
     "id": "movie-slot-1793477103873",
-    "tapeNumber": "QUADRO 3 // GALERIA DA MANSÃO",
+    "tapeNumber": "QUADRO 2 // GALERIA DA MANSÃO",
     "title": "Frewaka",
     "originalTitle": "Fréwaka",
     "year": 2024,
@@ -93,7 +63,7 @@ export const INITIAL_MOVIES: MovieTemplate[] = [
   },
   {
     "id": "movie-slot-1793477109869",
-    "tapeNumber": "QUADRO 4 // GALERIA DA MANSÃO",
+    "tapeNumber": "QUADRO 3 // GALERIA DA MANSÃO",
     "title": "Jacob's Ladder",
     "originalTitle": "Jacob's Ladder",
     "year": 1990,
@@ -122,7 +92,7 @@ export const INITIAL_MOVIES: MovieTemplate[] = [
   },
   {
     "id": "movie-slot-1793477125425",
-    "tapeNumber": "QUADRO 5 // GALERIA DA MANSÃO",
+    "tapeNumber": "QUADRO 4 // GALERIA DA MANSÃO",
     "title": "Heresy",
     "originalTitle": "Witte Wieven",
     "year": 2024,
@@ -148,6 +118,35 @@ export const INITIAL_MOVIES: MovieTemplate[] = [
       "supernatural": 66,
       "tension": 74,
       "visceral": 48
+    }
+  },
+  {
+    "id": "movie-slot-1793478338428",
+    "tapeNumber": "QUADRO 5 // GALERIA",
+    "title": "Saccharine",
+    "originalTitle": "Saccharine",
+    "year": 2026,
+    "duration": "1h 38min",
+    "subgenre": "Terror Sobrenatural & Mistério",
+    "fearLevel": 4,
+    "bpm": 121,
+    "tags": [
+      "Sobrenatural",
+      "Mistério"
+    ],
+    "synopsis": "Uma estudante de medicina obcecada pelo próprio corpo adquire no mercado clandestino uma pílula milagrosa de emagrecimento feita a partir de cinzas humanas cremadas. O efeito inicial parece perfeito, mas logo ela passa a ser assombrada de forma visceral e faminta pelo espírito da pessoa cujos restos mortais está ingerindo.",
+    "whyIChoseIt": "Escolhi esse para assistirmos juntinhos hoje à noite <3",
+    "curseWhisper": "OS OLHOS DO QUADRO ESTÃO SEGUINDO VOCÊS DOIS...",
+    "posterArt": "silent_fog",
+    "customPosterUrl": "https://m.media-amazon.com/images/M/MV5BMWNhNjFjZjYtNmViNi00MDRmLTk3ZTMtYmRiMDBhMTlkMjY1XkEyXkFqcGc@._V1_SX600.jpg",
+    "ritualVariation": "vhs_ring",
+    "imdbRating": "6.4",
+    "aiVerdict": "Análise IA (74% de Intensidade • Pico de 121 BPM): Filme marcado por assombração sobrenatural (92%) e alta tensão e sustos iminentes (64%). Classificado como Nível 4/5 no Terrômetro.",
+    "aiBreakdown": {
+      "psychological": 52,
+      "supernatural": 92,
+      "tension": 64,
+      "visceral": 62
     }
   },
   {
