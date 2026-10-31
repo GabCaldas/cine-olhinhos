@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-pixel: 'Press Start 2P', monospace;
+    --font-vt: 'VT323', monospace;
+    --font-gothic: 'Cinzel Decorative', serif;
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --font-typewriter: 'Special Elite', monospace;
+  }
+
+  body {
+    background-color: #050406;
+    color: #e5e2e8;
+    font-family: var(--font-serif);
+    overflow-x: hidden;
+  }
+}
+
+.font-pixel {
+  font-family: var(--font-pixel);
+}
+
+.font-vt {
+  font-family: var(--font-vt);
+}
+
+.font-gothic {
+  font-family: var(--font-gothic);
+}
+
+.font-serif-horror {
+  font-family: var(--font-serif);
+}
+
+.font-typewriter {
+  font-family: var(--font-typewriter);
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* CRT & VHS Overlays */
+.crt-scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(0, 0, 0, 0.42) 50%
+  ),
+  linear-gradient(
+    90deg,
+    rgba(255, 0, 0, 0.03),
+    rgba(0, 255, 0, 0.01),
+    rgba(0, 0, 255, 0.03)
+  );
+  background-size: 100% 3px, 6px 100%;
+}
+
+.vignette-heavy {
+  box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.92), inset 0 0 45px rgba(59, 10, 17, 0.35);
+}
+
+/* Subtle Card Tremor on Hover */
+@keyframes micro-tremor {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  20% { transform: translate(-1px, 0.5px) rotate(-0.2deg); }
+  40% { transform: translate(1px, -0.5px) rotate(0.2deg); }
+  60% { transform: translate(-0.5px, -1px) rotate(-0.15deg); }
+  80% { transform: translate(0.5px, 1px) rotate(0.15deg); }
+}
+
+.hover-tremor:hover {
+  animation: micro-tremor 0.28s infinite;
+}
+
+/* Violent Screen Shake for Ritual */
+@keyframes ritual-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-4px, -2px) rotate(-0.5deg); }
+  20% { transform: translate(4px, 2px) rotate(0.5deg); }
+  30% { transform: translate(-3px, 3px) rotate(-0.3deg); }
+  40% { transform: translate(3px, -3px) rotate(0.4deg); }
+  50% { transform: translate(-5px, 1px) rotate(-0.6deg); }
+  60% { transform: translate(4px, -1px) rotate(0.3deg); }
+  70% { transform: translate(-2px, -3px) rotate(-0.2deg); }
+  80% { transform: translate(3px, 3px) rotate(0.4deg); }
+  90% { transform: translate(-1px, -2px) rotate(0deg); }
+}
+
+.animate-ritual-shake {
+  animation: ritual-shake 0.22s infinite;
+}
+
+/* Flickering Lantern / Fluorescent Light */
+@keyframes horror-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    opacity: 0.25;
+  }
+}
+
+.animate-flicker {
+  animation: horror-flicker 4.5s infinite;
+}
+
+/* VHS Tracking Line */
+@keyframes vhs-tracking {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 0.65; }
+  90% { opacity: 0.65; }
+  100% { transform: translateY(500%); opacity: 0; }
+}
+
+.vhs-bar {
+  animation: vhs-tracking 3.2s linear infinite;
+}
+
+/* Chromatic Glitch Text */
+.glitch-text {
+  text-shadow: -1.5px 0 #b31217, 1.5px 0 #1e4d3b;
+}
+
+.glitch-text-intense {
+  text-shadow: -3px 0 #dc2626, 3px 0 #0ea5e9, 0 2px #7f1d1d;
+}
+
+/* Reduced Motion Accessibility Override */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Custom Dark Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #060508;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2c1016;
+  border: 1px solid #4a121b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6b1420;
+}
