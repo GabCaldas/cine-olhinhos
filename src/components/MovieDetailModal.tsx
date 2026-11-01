@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { MovieTemplate } from '../types/horror';
 import { PosterCanvas } from './PosterCanvas';
 import { analyzeMovieHorrorAI } from '../utils/horrorAiAnalyzer';
+import { getMovieStreamingOffers } from '../utils/movieAutoFill';
 import { soundEngine } from '../utils/soundEngine';
 import {
   X,
@@ -13,6 +14,7 @@ import {
   AlertTriangle,
   Cpu,
   Star,
+  Tv,
 } from 'lucide-react';
 
 interface MovieDetailModalProps {
@@ -233,6 +235,52 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
                 <p className="font-serif-horror text-base sm:text-lg text-zinc-200 leading-relaxed">
                   {movie.synopsis}
                 </p>
+              </div>
+
+              {/* Streaming & Rental Availability in Brazil */}
+              <div className="p-3.5 bg-[#0a0d14] border border-cyan-900/60 space-y-2.5">
+                <div className="flex items-center justify-between gap-2 border-b border-cyan-950/80 pb-1.5">
+                  <div className="flex items-center gap-1.5 font-pixel text-[9px] text-cyan-300 uppercase tracking-wider">
+                    <Tv className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Onde Assistir no Brasil (Catálogo vs. Aluguel):</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {getMovieStreamingOffers(movie).map((offer, idx) => {
+                    const isSub = offer.type === 'subscription';
+                    return (
+                      <div
+                        key={`${offer.platform}-${idx}`}
+                        className={`px-3 py-2 border flex flex-col justify-between ${
+                          isSub
+                            ? 'bg-emerald-950/35 border-emerald-600/70 text-emerald-100'
+                            : 'bg-amber-950/35 border-amber-600/70 text-amber-100'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1.5">
+                          <span className="font-vt text-base font-bold tracking-wide">
+                            {offer.platform}
+                          </span>
+                          <span
+                            className={`px-1.5 py-0.5 font-pixel text-[7px] uppercase tracking-wider border ${
+                              isSub
+                                ? 'bg-emerald-900/80 border-emerald-400 text-emerald-100'
+                                : 'bg-amber-900/80 border-amber-400 text-amber-100'
+                            }`}
+                          >
+                            {isSub ? '🟢 NO CATÁLOGO' : '🟡 POR ALUGUEL'}
+                          </span>
+                        </div>
+                        <span className="font-vt text-xs opacity-90 mt-0.5">
+                          {isSub
+                            ? `Incluso na assinatura (${offer.priceInfo || 'Catálogo ativo'})`
+                            : `Apenas Aluguel / Compra (${offer.priceInfo || 'VOD Digital'})`}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 

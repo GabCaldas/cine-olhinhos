@@ -145,29 +145,37 @@ export function App() {
     };
   }, []);
 
-  // Automatically fetch missing official posters, IMDb rating, AI Terrômetro metadata & repair bad synopses
+  // Automatically fetch missing official posters, IMDb rating, AI Terrômetro metadata & repair bad synopses (once per movie ID, without overwriting concurrent agent actions)
+  const repairedIdsRef = useRef<Set<string>>(new Set());
+
   useEffect(() => {
     let cancelled = false;
     async function enrichAndRepairMovies() {
-      const needsMovieEnrich = movies.some(
+      const toRepairMovies = movies.filter(
         (m) =>
           !m.isSecret &&
-          (!m.customPosterUrl || !m.aiVerdict || !m.imdbRating || isBadSynopsis(m.synopsis))
+          !repairedIdsRef.current.has(m.id) &&
+          (!m.customPosterUrl ||
+            !m.aiVerdict ||
+            !m.imdbRating ||
+            isBadSynopsis(m.synopsis) ||
+            !m.streamingPlatforms?.length)
       );
-      const needsChosenEnrich = chosenRecords.some(
-        (r) => !r.movie.isSecret && isBadSynopsis(r.movie.synopsis)
+      const toRepairChosen = chosenRecords.filter(
+        (r) =>
+          !r.movie.isSecret &&
+          !repairedIdsRef.current.has(r.recordId) &&
+          (isBadSynopsis(r.movie.synopsis) || !r.movie.streamingPlatforms?.length)
       );
 
-      if (!needsMovieEnrich && !needsChosenEnrich) return;
+      if (toRepairMovies.length === 0 && toRepairChosen.length === 0) return;
 
-      const repairSingleMovie = async (m: MovieTemplate): Promise<{ movie: MovieTemplate; didChange: boolean }> => {
-        if (
-          m.isSecret ||
-          (m.customPosterUrl && m.aiVerdict && m.imdbRating && !isBadSynopsis(m.synopsis))
-        ) {
-          return { movie: m, didChange: false };
-        }
+      toRepairMovies.forEach((m) => repairedIdsRef.current.add(m.id));
+      toRepairChosen.forEach((r) => repairedIdsRef.current.add(r.recordId));
 
+      const repairSingleMovie = async (
+        m: MovieTemplate
+      ): Promise<{ movie: MovieTemplate; didChange: boolean }> => {
         const curated =
           findCuratedMovieMatch(m.title) ||
           (m.originalTitle ? findCuratedMovieMatch(m.originalTitle) : undefined);
@@ -194,6 +202,7 @@ export function App() {
               aiBreakdown: ai.aiBreakdown,
               tags: ai.tags,
               synopsis: curated.synopsis,
+              streamingPlatforms: curated.streamingPlatforms,
               customPosterUrl: m.customPosterUrl || curated.posterUrl,
             },
           };
@@ -246,6 +255,10 @@ export function App() {
                 aiBreakdown: best.aiBreakdown,
                 tags: best.tags?.length ? best.tags : m.tags,
                 synopsis: !isBadSynopsis(best.synopsis) ? best.synopsis : m.synopsis,
+                streamingPlatforms:
+                  best.streamingPlatforms?.length
+                    ? best.streamingPlatforms
+                    : m.streamingPlatforms,
                 customPosterUrl: m.customPosterUrl || best.posterUrl,
               },
             };
@@ -257,41 +270,48 @@ export function App() {
         return { movie: m, didChange: false };
       };
 
-      const updatedMovies: MovieTemplate[] = [];
-      let moviesChanged = false;
-
-      for (const m of movies) {
+      const repairedMap = new Map<string, MovieTemplate>();
+      for (const m of toRepairMovies) {
         const res = await repairSingleMovie(m);
-        if (res.didChange) moviesChanged = true;
-        updatedMovies.push(res.movie);
+        if (res.didChange) {
+          repairedMap.set(m.id, res.movie);
+        }
       }
 
-      const updatedChosen: ChosenMovieRecord[] = [];
-      let chosenChanged = false;
-
-      for (const r of chosenRecords) {
+      const repairedChosenMap = new Map<string, MovieTemplate>();
+      for (const r of toRepairChosen) {
         const res = await repairSingleMovie(r.movie);
-        if (res.didChange) chosenChanged = true;
-        updatedChosen.push(res.didChange ? { ...r, movie: res.movie } : r);
+        if (res.didChange) {
+          repairedChosenMap.set(r.recordId, res.movie);
+        }
       }
 
-      if (!cancelled && (moviesChanged || chosenChanged)) {
-        if (moviesChanged) {
-          setMovies(updatedMovies);
-          saveMovies(updatedMovies);
-          await persistMoviesEverywhere(updatedMovies);
-          setInspectedMovie((prev) => {
-            if (!prev) return null;
-            return updatedMovies.find((u) => u.id === prev.id) || prev;
-          });
-        }
-        if (chosenChanged) {
-          setChosenRecords(updatedChosen);
-          await saveChosenMovies(updatedChosen);
-        }
+      if (cancelled) return;
+
+      let finalMovies = moviesRef.current;
+      let finalChosen = chosenRef.current;
+
+      if (repairedMap.size > 0) {
+        finalMovies = moviesRef.current.map((m) => repairedMap.get(m.id) || m);
+        setMovies(finalMovies);
+        saveMovies(finalMovies);
+        await persistMoviesEverywhere(finalMovies);
+        setInspectedMovie((prev) => (prev ? repairedMap.get(prev.id) || prev : null));
+      }
+
+      if (repairedChosenMap.size > 0) {
+        finalChosen = chosenRef.current.map((r) => {
+          const rep = repairedChosenMap.get(r.recordId);
+          return rep ? { ...r, movie: rep } : r;
+        });
+        setChosenRecords(finalChosen);
+        await saveChosenMovies(finalChosen);
+      }
+
+      if (repairedMap.size > 0 || repairedChosenMap.size > 0) {
         await pushStateToCloud({
-          movies: moviesChanged ? updatedMovies : moviesRef.current,
-          chosenMovies: chosenChanged ? updatedChosen : chosenRef.current,
+          movies: finalMovies,
+          chosenMovies: finalChosen,
         });
       }
     }

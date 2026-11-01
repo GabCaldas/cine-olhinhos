@@ -1,5 +1,6 @@
 import { ChosenMovieRecord, MovieTemplate } from '../types/horror';
 import { getStoredAgentApiKey } from './cloudSync';
+import { getMovieStreamingOffers } from './movieAutoFill';
 
 export type ButlerActionType =
   | 'NONE'
@@ -32,20 +33,135 @@ export interface ChatTurn {
   proposedToRemove?: string[];
 }
 
+function normalizeText(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+export function matchWallMovie(
+  movies: MovieTemplate[],
+  queryOrId?: string
+): MovieTemplate | undefined {
+  if (!queryOrId) return undefined;
+  const publicMovies = movies.filter((m) => !m.isSecret);
+  if (publicMovies.length === 0) return undefined;
+
+  const raw = queryOrId.trim();
+  const norm = normalizeText(raw);
+
+  // 1. Exact ID match
+  const byId = publicMovies.find((m) => m.id.toLowerCase() === raw.toLowerCase());
+  if (byId) return byId;
+
+  // 2. Number / index match (e.g., "1", "quadro 1", "primeiro", "ultimo")
+  const numMatch = norm.match(/^(?:quadro\s*#?\s*)?(\d+)$/);
+  if (numMatch) {
+    const idx = parseInt(numMatch[1], 10) - 1;
+    if (idx >= 0 && idx < publicMovies.length) return publicMovies[idx];
+  }
+  if (/\b(primeiro|quadro 1)\b/.test(norm)) return publicMovies[0];
+  if (/\b(ultimo|último)\b/.test(norm)) return publicMovies[publicMovies.length - 1];
+
+  // 3. Exact or substring title / originalTitle match
+  return (
+    publicMovies.find(
+      (m) =>
+        normalizeText(m.title) === norm ||
+        (m.originalTitle && normalizeText(m.originalTitle) === norm)
+    ) ||
+    publicMovies.find(
+      (m) =>
+        normalizeText(m.title).includes(norm) ||
+        norm.includes(normalizeText(m.title)) ||
+        (m.originalTitle &&
+          (normalizeText(m.originalTitle).includes(norm) ||
+            norm.includes(normalizeText(m.originalTitle))))
+    )
+  );
+}
+
+function findMovieMentionedInText(
+  text: string,
+  movies: MovieTemplate[]
+): MovieTemplate | undefined {
+  const publicMovies = movies.filter((m) => !m.isSecret);
+  const normText = normalizeText(text);
+
+  // Check if a specific painting number was mentioned ("quadro 1", "quadro 2", "primeiro quadro", "último quadro")
+  const quadroNum = normText.match(/\bquadro\s*#?\s*(\d+)\b/);
+  if (quadroNum) {
+    const idx = parseInt(quadroNum[1], 10) - 1;
+    if (idx >= 0 && idx < publicMovies.length) return publicMovies[idx];
+  }
+  if (/\bprimeiro quadro\b/.test(normText) && publicMovies[0]) {
+    return publicMovies[0];
+  }
+  if (/\bultimo quadro\b/.test(normText) && publicMovies.length > 0) {
+    return publicMovies[publicMovies.length - 1];
+  }
+
+  // Sort by title length descending so longer titles match first
+  const sorted = [...publicMovies].sort((a, b) => b.title.length - a.title.length);
+  for (const m of sorted) {
+    const t = normalizeText(m.title);
+    const o = m.originalTitle ? normalizeText(m.originalTitle) : '';
+    if ((t.length >= 3 && normText.includes(t)) || (o.length >= 3 && normText.includes(o))) {
+      return m;
+    }
+  }
+  return undefined;
+}
+
+function extractMovieTitleToHang(userMessage: string): string | null {
+  const cleaned = userMessage.trim();
+  // Match quoted title first if user used quotes
+  const quoted = cleaned.match(/["'“”«»]([^"'“”«»]{2,50})["'“”«»]/);
+  if (quoted && quoted[1]) {
+    return quoted[1].trim();
+  }
+
+  const regex =
+    /(?:pendur(?:e|ar|a)|adicion(?:e|ar|a)|coloc(?:a|ar)|coloque|bota(?:r)?|bote|ponha|põe|poe|inclu(?:a|ir))\s+(?:o\s+quadro\s+(?:do\s+filme\s+|de\s+)?|o\s+filme\s+|um\s+quadro\s+(?:de\s+|do\s+)?|a\s+obra\s+)?(.+?)(?:\s+na\s+parede|\s+nos\s+quadros|\s+no\s+corredor|\s+na\s+galeria|\s+por\s+favor|\s+george|[.!?]*$)/i;
+  const match = cleaned.match(regex);
+  if (match && match[1]) {
+    const candidate = match[1]
+      .replace(/\s+(?:na parede|nos quadros|no corredor|na galeria|agora|por favor)$/i, '')
+      .trim();
+    if (
+      candidate.length >= 2 &&
+      candidate.length <= 55 &&
+      !/^(um filme|algum filme|outro filme|qualquer um|esse|este|aquele)$/i.test(candidate)
+    ) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 function buildSystemPrompt(
   movies: MovieTemplate[],
   chosenMovies: ChosenMovieRecord[]
 ): string {
   const wallSummary = movies
     .filter((m) => !m.isSecret)
-    .map(
-      (m, i) =>
-        `${i + 1}. ID="${m.id}" | Título="${m.title}" (${m.year}) | IMDb=${
-          m.imdbRating || '7.2'
-        }/10 | Subgênero="${m.subgenre}" | Medo=${m.fearLevel}/5 (${
-          m.bpm
-        } BPM) | Sinopse="${m.synopsis}"`
-    )
+    .map((m, i) => {
+      const offers = getMovieStreamingOffers(m)
+        .map(
+          (o) =>
+            `${o.platform} (${
+              o.type === 'subscription' ? 'Incluso na assinatura' : o.priceInfo || 'Aluguel'
+            })`
+        )
+        .join(', ');
+      return `${i + 1}. ID="${m.id}" | Título="${m.title}" (${m.year}) | IMDb=${
+        m.imdbRating || '7.2'
+      }/10 | Subgênero="${m.subgenre}" | Medo=${m.fearLevel}/5 (${
+        m.bpm
+      } BPM) | Onde assistir=[${offers}] | Sinopse="${m.synopsis}"`;
+    })
     .join('\n');
 
   const chosenSummary =
@@ -60,14 +176,17 @@ function buildSystemPrompt(
           .join('\n')
       : 'Nenhum filme foi escolhido ainda.';
 
-  return `Você é "George", o Mordomo Fantasma desta mansão vitoriana em pixel art.
+  return `Você é "George", o Mordomo Fantasma desta mansão vitoriana interativa em pixel art.
 Você serviu esta mansão em 1894 (e jura até hoje que morreu de puro desgosto ao ver alguém assistir um filme ruim de luz acesa).
 Você conversa com o casal dono da sessão: Caldas e sua namorada Aninha (também chamada carinhosamente de "Olhinhos" ou "amoreco").
 
+IMPORTANTE — VOCÊ CONTROLA A MANSÃO 2D E OS QUADROS DE VERDADE:
+- Este site é uma aplicação interativa onde o seu campo JSON "action" executa ações reais na parede do corredor 2D (pendurar filmes novos buscando do IMDb, excluir quadros da parede, caminhar até um quadro, abrir a ficha de inspeção de um quadro ou iniciar o ritual de escolha).
+- Portanto, NUNCA diga que "não pode fazer isso fisicamente" ou que "é apenas uma IA/fantasma"! Quando Caldas ou Aninha pedirem para você adicionar/pendurar um filme, remover/excluir um quadro, caminhar até um quadro ou abrir um quadro, confirme com entusiasmo dentro do seu personagem e preencha o campo "action"!
+
 PERSONALIDADE E COMO CONVERSAR:
-- Aja como uma PESSOA/FANTASMA REAL conversando ao vivo! Você tem humor ácido e elegante, é teatral, espirituoso e responde DIRETAMENTE ao que a pessoa acabou de dizer.
-- PROIBIDO usar respostas prontas, robóticas ou repetitivas!
-- Se a pessoa estiver apenas conversando, testando, perguntando sobre você ou brincando: CONVERSE NATURALMENTE no personagem de mordomo fantasma e use action.type = "NONE".
+- Aja como um mordomo fantasma vitoriano espirituoso, elegante, teatral e bem-humorado!
+- PROIBIDO usar respostas robóticas!
 
 QUADROS PENDURADOS ATUALMENTE NA PAREDE DO CORREDOR:
 ${wallSummary || 'Nenhum quadro pendurado no momento (a parede está vazia).'}
@@ -75,43 +194,24 @@ ${wallSummary || 'Nenhum quadro pendurado no momento (a parede está vazia).'}
 FILMES QUE ANINHA E CALDAS JÁ ESCOLHERAM ANTERIORMENTE (NO SALÃO DOS ESCOLHIDOS):
 ${chosenSummary}
 
-ONDE ASSISTIR CADA FILME (GUIA DE STREAMING NO BRASIL — RESPONDA SEMPRE DENTRO DO COSPLAY DE MORDOMO FANTASMA!):
-- Você sabe exatamente em quais plataformas de streaming do Brasil (Netflix, Prime Video, Max / HBO Max, Globoplay / Telecine, Disney+, Paramount+, MUBI, Looke, Apple TV, YouTube Filmes) cada filme de terror está disponível por assinatura ou aluguel!
-- Referência rápida de alguns títulos populares no Brasil (além do seu conhecimento completo de qualquer outro filme):
-  * "Hereditário" (2018): Max (HBO Max), Prime Video e aluguel na Apple TV / YouTube.
-  * "A Bruxa" (2015): Prime Video, Globoplay (Telecine) e aluguel na Apple TV.
-  * "Fale Comigo" (2022): Prime Video, Telecine / Globoplay e aluguel na Apple TV.
-  * "O Iluminado" (1980): Max (HBO Max) e aluguel na Apple TV / Prime Video.
-  * "Invocação do Mal" (2013): Max (HBO Max) e Prime Video.
-  * "O Chamado" (2002): Paramount+, Mercado Play, Prime Video e Apple TV.
-  * "A Autópsia" (2016): Prime Video, Runtime / Pluto TV e Apple TV.
-  * "Sorria" (2022): Paramount+, Netflix e Prime Video.
-  * "A Mosca / The Fly" (1986): Disney+ (aba Star) e aluguel digital na Apple TV / Prime Video.
-  * "O Exorcista / The Exorcist" (1973): Max (HBO Max) e aluguel na Apple TV / Prime Video.
-  * "A Substância / The Substance" (2024): MUBI e Prime Video (canais/aluguel) e Apple TV.
-  * "Midsommar" (2019): Prime Video, Max e MUBI.
-  * "Longlegs" (2024): Prime Video e Apple TV.
-  * "Nosferatu" (2024): Prime Video e Apple TV.
-- COMO RESPONDER "ONDE ASSISTIR" MANTENDO O COSPLAY DE MORDOMO FANTASMA DE 1894:
-  * Jamais quebre o personagem! Trate os streamings como "caixas luminosas dos vivos", "grimórios digitais de assinatura" ou "tavernas virtuais de aluguel", mas SEMPRE cite os nomes reais e exatos das plataformas (ex: "Espiando pelo meu monóculo espectral as engenhocas modernas de vocês, vejo que esta obra assombra o catálogo da **Max (HBO)** e do **Prime Video**, além de poder ser alugada por algumas moedas na **Apple TV**!").
-  * Inclusive, quando você recomendar um filme ou quando perguntarem sobre um quadro, você pode mencionar onde assisti-lo!
+ONDE ASSISTIR CADA FILME (GUIA DE STREAMING NO BRASIL — EXPLICITE SE É ASSINATURA OU ALUGUEL!):
+- Você sabe exatamente em quais plataformas de streaming do Brasil (Netflix, Prime Video, Max / HBO Max, Globoplay / Telecine, Disney+, Paramount+, MUBI, Looke, Apple TV, YouTube Filmes) cada filme de terror está disponível, e DEVE SEMPRE deixar explícito se o filme está INCLUSO NA ASSINATURA ou se é por ALUGUEL DIGITAL!
+- Mantenha o cosplay de mordomo fantasma de 1894 (tratando os streamings como "caixas luminosas", "salões de assinatura" ou "tavernas digitais de aluguel"), mas cite os nomes reais das plataformas e avise claramente o que é assinatura e o que é aluguel!
 
-REGRA DE OURO SOBRE ADICIONAR E EXCLUIR QUADROS (RESPEITE A ESCOLHA DO CASAL!):
-- NUNCA pendure ("ADD_NEW_MOVIE") nem exclua ("REMOVE_MOVIE") um quadro automaticamente quando o casal estiver apenas pedindo recomendações, ideias ou opções (ex: "tem opção de body horror?", "sugira um filme de possessão", "quais filmes seriam bons?").
-- Quando o casal pedir opções/sugestões de filmes que NÃO estão na parede:
-  1. Fale sobre 1 a 3 filmes na sua resposta ("reply") e pergunte se eles querem que você pendure algum deles na parede.
-  2. Mantenha action.type = "NONE".
-  3. Coloque o nome exato do(s) filme(s) sugerido(s) na lista "proposedToAdd" (ex: ["The Fly", "The Substance"]) para que apareça um botão de confirmação na tela e O CASAL ESCOLHA qual quer pendurar!
-- Só use action.type = "ADD_NEW_MOVIE" quando o casal der uma ORDEM DIRETA E EXPLÍCITA para adicionar/pendurar um filme específico (ex: "pendure A Mosca na parede", "adicione o quadro Midsommar agora", "pode colocar esse na parede").
-- Só use action.type = "REMOVE_MOVIE" quando o casal der uma ORDEM DIRETA E EXPLÍCITA para excluir/remover/tirar um quadro que está na parede (ex: "exclua The Fly", "remova o quadro Sorria da parede", "tire esse filme da parede"), passando o "movieId" exato (ou o nome em "movieQuery").
-
-SUAS AÇÕES NO MAPA 2D ("action"):
-1. "NONE": Use ao conversar, responder perguntas ou sugerir opções (colocando sugestões externas em "proposedToAdd" para o casal decidir).
-2. "WALK_TO_PAINTING": Use quando destacar ou recomendar um quadro que JÁ ESTÁ na parede do corredor (passe o "movieId" exato dele).
-3. "INSPECT_PAINTING": Use quando pedirem para abrir/inspecionar os detalhes de um quadro da parede (passe o "movieId").
-4. "ADD_NEW_MOVIE": Use APENAS quando o casal ordenar explicitamente para pendurar/adicionar um filme específico na parede (passe o título oficial em "movieQuery").
-5. "REMOVE_MOVIE": Use quando o casal pedir para excluir/remover um quadro da parede do corredor (passe o "movieId" do quadro da parede ou o nome em "movieQuery").
-6. "START_RITUAL": Use APENAS quando disserem claramente que já decidiram qual quadro da parede vão assistir agora (passe o "movieId").
+REGRAS SOBRE ADICIONAR, EXCLUIR E INTERAGIR COM OS QUADROS ("action"):
+1. Quando o casal pedir SUGESTÕES ou OPÇÕES de filmes que não estão na parede (ex: "sugira filmes de possessão", "tem opção de body horror?"):
+   - Use action.type = "NONE".
+   - Coloque os títulos sugeridos em "proposedToAdd": ["Filme 1", "Filme 2"] para aparecerem botões de confirmação na tela.
+2. Quando o casal pedir EXPLICITAMENTE para ADICIONAR / PENDURAR / COLOCAR um filme na parede (ex: "adicione Hereditário", "pendure A Mosca na parede", "coloca O Iluminado nos quadros"):
+   - Use action.type = "ADD_NEW_MOVIE" e coloque o nome do filme em action.movieQuery (ex: "movieQuery": "Hereditário").
+3. Quando o casal pedir para REMOVER / EXCLUIR / TIRAR um quadro da parede (ex: "exclua Frailty", "tire o quadro 1 da parede"):
+   - Use action.type = "REMOVE_MOVIE" e passe o ID em action.movieId (ou o nome em action.movieQuery).
+4. Quando o casal pedir para IR ATÉ / MOSTRAR / CAMINHAR até um quadro da parede ( ou quando você recomendar um quadro que JÁ ESTÁ na parede):
+   - Use action.type = "WALK_TO_PAINTING" e passe o ID exato do quadro em action.movieId.
+5. Quando o casal pedir para ABRIR / INSPECIONAR / VER DETALHES de um quadro da parede:
+   - Use action.type = "INSPECT_PAINTING" e passe o ID exato do quadro em action.movieId.
+6. Quando o casal decidir ESCOLHER / SELAR O PACTO / ASSISTIR AGORA um quadro da parede:
+   - Use action.type = "START_RITUAL" e passe o ID exato do quadro em action.movieId.
 
 FORMATO DE RESPOSTA:
 Responda SEMPRE em português, em um JSON válido seguindo exatamente esta estrutura:
@@ -120,11 +220,11 @@ Responda SEMPRE em português, em um JSON válido seguindo exatamente esta estru
   "action": {
     "type": "NONE" | "WALK_TO_PAINTING" | "INSPECT_PAINTING" | "ADD_NEW_MOVIE" | "REMOVE_MOVIE" | "START_RITUAL",
     "movieId": "id opcional do quadro na parede",
-    "movieQuery": "título opcional de um filme para adicionar ou remover"
+    "movieQuery": "título opcional de um filme para adicionar ou interagir"
   },
   "proposedToAdd": ["título opcional de filme sugerido 1", "título opcional 2"],
   "proposedToRemove": ["id opcional de quadro da parede sugerido para remoção"],
-  "suggestedFollowUps": ["resposta ou pergunta curta 1", "resposta ou pergunta curta 2", "resposta ou pergunta curta 3"]
+  "suggestedFollowUps": ["pergunta curta 1", "pergunta curta 2"]
 }`;
 }
 
@@ -143,7 +243,48 @@ function parseAgentJson(rawText: string): {
   if (firstBrace !== -1 && lastBrace > firstBrace) {
     const jsonSlice = candidate.slice(firstBrace, lastBrace + 1);
     try {
-      return JSON.parse(jsonSlice);
+      const parsed = JSON.parse(jsonSlice);
+      // Normalize action if model returned a string or slightly different field names
+      let normalizedAction: ButlerAgentAction = { type: 'NONE' };
+      if (parsed.action && typeof parsed.action === 'object') {
+        const rawType = String(parsed.action.type || 'NONE').toUpperCase();
+        const validTypes: ButlerActionType[] = [
+          'NONE',
+          'WALK_TO_PAINTING',
+          'INSPECT_PAINTING',
+          'ADD_NEW_MOVIE',
+          'REMOVE_MOVIE',
+          'START_RITUAL',
+        ];
+        const mappedType: ButlerActionType = validTypes.includes(rawType as ButlerActionType)
+          ? (rawType as ButlerActionType)
+          : rawType.includes('ADD') || rawType.includes('HANG')
+          ? 'ADD_NEW_MOVIE'
+          : rawType.includes('REMOV') || rawType.includes('DELET')
+          ? 'REMOVE_MOVIE'
+          : rawType.includes('INSPECT') || rawType.includes('OPEN')
+          ? 'INSPECT_PAINTING'
+          : rawType.includes('WALK') || rawType.includes('GOTO')
+          ? 'WALK_TO_PAINTING'
+          : rawType.includes('RITUAL') || rawType.includes('START')
+          ? 'START_RITUAL'
+          : 'NONE';
+
+        normalizedAction = {
+          type: mappedType,
+          movieId: parsed.action.movieId || parsed.action.id || undefined,
+          movieQuery:
+            parsed.action.movieQuery ||
+            parsed.action.title ||
+            parsed.action.movie ||
+            parsed.action.query ||
+            undefined,
+        };
+      }
+      return {
+        ...parsed,
+        action: normalizedAction,
+      };
     } catch {
       const replyMatch = jsonSlice.match(/"reply"\s*:\s*"((?:[^"\\]|\\.)*)"/);
       if (replyMatch?.[1]) {
@@ -172,7 +313,8 @@ function buildResponseFromParsed(
     suggestedFollowUps?: string[];
   },
   providerUsed: ButlerAgentResponse['providerUsed'],
-  userMessage: string
+  userMessage: string,
+  movies: MovieTemplate[]
 ): ButlerAgentResponse {
   const proposedToAdd = Array.isArray(parsed.proposedToAdd)
     ? parsed.proposedToAdd.filter(Boolean).slice(0, 4)
@@ -183,9 +325,27 @@ function buildResponseFromParsed(
 
   let action: ButlerAgentAction = parsed.action || { type: 'NONE' };
 
-  // Safety guard: Never hang a new movie automatically unless the user explicitly commanded to hang/add it!
   const explicitAddCommand =
-    /(?:pendur|adicion|coloc|bota|ponha|põe|inclu)/i.test(userMessage);
+    /(?:pendur|adicion|coloc|coloque|bota|bote|ponha|põe|poe|inclu)/i.test(userMessage);
+  const explicitRemoveCommand =
+    /(?:exclu|remov|tir|apag|delet)/i.test(userMessage);
+  const explicitInspectCommand =
+    /(?:inspecion|abr(?:a|ir)|detalhe|ficha|examin)/i.test(userMessage);
+  const explicitWalkCommand =
+    /(?:caminh|and(?:e|ar)|lev(?:e|ar)|mostr(?:e|ar)|ir\s+at[eé]|v[aá]\s+at[eé]|qual\s+quadro)/i.test(
+      userMessage
+    );
+  const explicitRitualCommand =
+    /(?:iniciar\s+ritual|selar\s+(?:o\s+)?pacto|escolher\s+este|vamos\s+assistir\s+esse|escolhemos)/i.test(
+      userMessage
+    );
+
+  // 1. If LLM returned ADD_NEW_MOVIE without movieQuery (put it in movieId instead), fix it
+  if (action.type === 'ADD_NEW_MOVIE' && !action.movieQuery && action.movieId) {
+    action.movieQuery = action.movieId;
+  }
+
+  // 2. Safety guard: If LLM returned ADD_NEW_MOVIE on a general question (not an explicit add command), turn into choice button
   if (action.type === 'ADD_NEW_MOVIE' && !explicitAddCommand) {
     if (action.movieQuery && !proposedToAdd.includes(action.movieQuery)) {
       proposedToAdd.unshift(action.movieQuery);
@@ -193,15 +353,68 @@ function buildResponseFromParsed(
     action = { type: 'NONE' };
   }
 
-  // Safety guard: Never delete a movie automatically unless the user explicitly commanded to remove/delete it!
-  const explicitRemoveCommand =
-    /(?:exclu|remov|tir|apag|delet)/i.test(userMessage);
+  // 3. Guarantee: If user EXPLICITLY commanded to add/hang a movie, but LLM left action as NONE, trigger ADD_NEW_MOVIE!
+  if (action.type === 'NONE' && explicitAddCommand && !explicitRemoveCommand) {
+    const extracted = extractMovieTitleToHang(userMessage) || proposedToAdd[0];
+    if (extracted) {
+      const alreadyOnWall = matchWallMovie(movies, extracted);
+      if (!alreadyOnWall) {
+        action = { type: 'ADD_NEW_MOVIE', movieQuery: extracted };
+      } else {
+        action = { type: 'WALK_TO_PAINTING', movieId: alreadyOnWall.id };
+      }
+    }
+  }
+
+  // 4. Safety guard: Never delete a movie automatically unless the user explicitly commanded to remove/delete it
   if (action.type === 'REMOVE_MOVIE' && !explicitRemoveCommand) {
     const target = action.movieId || action.movieQuery;
     if (target && !proposedToRemove.includes(target)) {
       proposedToRemove.unshift(target);
     }
     action = { type: 'NONE' };
+  }
+
+  // 5. Guarantee: If user EXPLICITLY commanded to remove/delete a movie on the wall, ensure REMOVE_MOVIE fires!
+  if (action.type === 'NONE' && explicitRemoveCommand) {
+    const wallHit = findMovieMentionedInText(userMessage, movies);
+    if (wallHit) {
+      action = { type: 'REMOVE_MOVIE', movieId: wallHit.id, movieQuery: wallHit.title };
+    }
+  }
+
+  // 6. Guarantee: If user asked to inspect, walk to, or start ritual for a wall movie, or if George recommended a wall movie in his reply
+  if (action.type === 'NONE') {
+    const wallHitInUser = findMovieMentionedInText(userMessage, movies);
+    const wallHitInReply = parsed.reply
+      ? findMovieMentionedInText(parsed.reply, movies)
+      : undefined;
+
+    if (explicitRitualCommand && (wallHitInUser || wallHitInReply)) {
+      const target = (wallHitInUser || wallHitInReply)!;
+      action = { type: 'START_RITUAL', movieId: target.id };
+    } else if (explicitInspectCommand && (wallHitInUser || wallHitInReply)) {
+      const target = (wallHitInUser || wallHitInReply)!;
+      action = { type: 'INSPECT_PAINTING', movieId: target.id };
+    } else if (explicitWalkCommand && (wallHitInUser || wallHitInReply)) {
+      const target = (wallHitInUser || wallHitInReply)!;
+      action = { type: 'WALK_TO_PAINTING', movieId: target.id };
+    } else if (wallHitInUser) {
+      action = { type: 'WALK_TO_PAINTING', movieId: wallHitInUser.id };
+    }
+  }
+
+  // 7. Ensure WALK_TO_PAINTING / INSPECT_PAINTING / START_RITUAL resolve movieId even if LLM placed title in movieQuery or movieId
+  if (
+    action.type === 'WALK_TO_PAINTING' ||
+    action.type === 'INSPECT_PAINTING' ||
+    action.type === 'START_RITUAL' ||
+    action.type === 'REMOVE_MOVIE'
+  ) {
+    const resolved = matchWallMovie(movies, action.movieId || action.movieQuery);
+    if (resolved) {
+      action.movieId = resolved.id;
+    }
   }
 
   return {
@@ -218,20 +431,116 @@ function buildResponseFromParsed(
   };
 }
 
-/**
- * Real Cloud LLM (GPT-OSS 20B Reasoning via Pollinations OpenAI-compatible endpoint)
- * Works 100% free with zero API key or balance required!
- */
+function extractGeminiText(data: Record<string, unknown>): string {
+  const candidates = data?.candidates as Array<{
+    content?: { parts?: Array<{ text?: string; thought?: boolean }> };
+  }> | undefined;
+  const parts = candidates?.[0]?.content?.parts || [];
+  const nonThought = parts.filter((p) => !p.thought && typeof p.text === 'string');
+  if (nonThought.length > 0) {
+    return nonThought.map((p) => p.text).join('').trim();
+  }
+  return (parts[parts.length - 1]?.text || '').trim();
+}
+
+async function callGeminiAgent(
+  apiKey: string,
+  systemPrompt: string,
+  history: ChatTurn[],
+  userMessage: string,
+  movies: MovieTemplate[]
+): Promise<ButlerAgentResponse> {
+  // Format history so it always starts with a 'user' turn and assistant turns are wrapped as JSON
+  const recentHistory = history.slice(-6);
+  const formattedTurns: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
+
+  for (const h of recentHistory) {
+    if (formattedTurns.length === 0 && h.role === 'assistant') {
+      continue;
+    }
+    formattedTurns.push({
+      role: h.role === 'assistant' ? 'model' : 'user',
+      parts: [
+        {
+          text:
+            h.role === 'assistant'
+              ? JSON.stringify({
+                  reply: h.content,
+                  action: { type: 'NONE' },
+                  proposedToAdd: h.proposedToAdd || [],
+                  proposedToRemove: h.proposedToRemove || [],
+                })
+              : h.content,
+        },
+      ],
+    });
+  }
+
+  formattedTurns.push({
+    role: 'user',
+    parts: [{ text: userMessage }],
+  });
+
+  // Use newest active Gemini 3.5 / 3.1 Flash models first, with fallback to 2.5
+  const models = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.5-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-2.5-flash',
+  ];
+  let lastErr = '';
+
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(
+      apiKey
+    )}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemPrompt }],
+        },
+        contents: formattedTurns,
+        generationConfig: {
+          temperature: 0.75,
+          responseMimeType: 'application/json',
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      lastErr = await res.text();
+      continue;
+    }
+
+    const data = await res.json();
+    const rawText = extractGeminiText(data);
+    const parsed = parseAgentJson(rawText);
+    return buildResponseFromParsed(parsed, 'gemini', userMessage, movies);
+  }
+
+  throw new Error(lastErr || 'Falha ao consultar Gemini API');
+}
+
 async function callFreeCloudReasoningAgent(
   systemPrompt: string,
   history: ChatTurn[],
-  userMessage: string
+  userMessage: string,
+  movies: MovieTemplate[]
 ): Promise<ButlerAgentResponse> {
   const messages = [
     { role: 'system', content: systemPrompt },
-    ...history.slice(-8).map((h) => ({
+    ...history.slice(-6).map((h) => ({
       role: h.role,
-      content: h.content,
+      content:
+        h.role === 'assistant'
+          ? JSON.stringify({
+              reply: h.content,
+              action: { type: 'NONE' },
+              proposedToAdd: h.proposedToAdd || [],
+            })
+          : h.content,
     })),
     { role: 'user', content: userMessage },
   ];
@@ -242,9 +551,9 @@ async function callFreeCloudReasoningAgent(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'openai-fast',
+      model: 'openai',
       messages,
-      temperature: 0.8,
+      temperature: 0.75,
       response_format: { type: 'json_object' },
     }),
   });
@@ -257,14 +566,15 @@ async function callFreeCloudReasoningAgent(
   const rawText = data?.choices?.[0]?.message?.content || '';
   const parsed = parseAgentJson(rawText);
 
-  return buildResponseFromParsed(parsed, 'cloud_llm', userMessage);
+  return buildResponseFromParsed(parsed, 'cloud_llm', userMessage, movies);
 }
 
 async function callDeepSeekAgent(
   apiKey: string,
   systemPrompt: string,
   history: ChatTurn[],
-  userMessage: string
+  userMessage: string,
+  movies: MovieTemplate[]
 ): Promise<ButlerAgentResponse> {
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -275,49 +585,6 @@ async function callDeepSeekAgent(
     { role: 'user', content: userMessage },
   ];
 
-  const isOpenRouter = apiKey.startsWith('sk-or-');
-
-  if (isOpenRouter) {
-    const models = [
-      'deepseek/deepseek-chat-v3-0324:free',
-      'deepseek/deepseek-r1:free',
-      'deepseek/deepseek-chat',
-    ];
-    let lastError = '';
-
-    for (const model of models) {
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://horror-site-aninha.local',
-          'X-Title': 'Mansao de Terror Caldas & Aninha',
-        },
-        body: JSON.stringify({
-          model,
-          messages,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!res.ok) {
-        lastError = await res.text();
-        continue;
-      }
-
-      const data = await res.json();
-      const rawText = data?.choices?.[0]?.message?.content || '';
-      if (!rawText) continue;
-
-      const parsed = parseAgentJson(rawText);
-      return buildResponseFromParsed(parsed, 'deepseek', userMessage);
-    }
-
-    throw new Error(lastError || 'Falha ao consultar DeepSeek via OpenRouter');
-  }
-
-  // Official DeepSeek Platform API (https://api.deepseek.com/chat/completions)
   const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: {
@@ -339,68 +606,15 @@ async function callDeepSeekAgent(
   const data = await res.json();
   const rawText = data?.choices?.[0]?.message?.content || '{}';
   const parsed = parseAgentJson(rawText);
-  return buildResponseFromParsed(parsed, 'deepseek', userMessage);
-}
-
-async function callGeminiAgent(
-  apiKey: string,
-  systemPrompt: string,
-  history: ChatTurn[],
-  userMessage: string
-): Promise<ButlerAgentResponse> {
-  const contents = [
-    ...history.slice(-6).map((h) => ({
-      role: h.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: h.content }],
-    })),
-    {
-      role: 'user',
-      parts: [{ text: userMessage }],
-    },
-  ];
-
-  // Try gemini-2.5-flash first, fallback to gemini-2.0-flash if needed
-  const models = ['gemini-2.5-flash', 'gemini-2.0-flash'];
-  let lastErr = '';
-
-  for (const model of models) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(
-      apiKey
-    )}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: {
-          parts: [{ text: systemPrompt }],
-        },
-        contents,
-        generationConfig: {
-          temperature: 0.75,
-          responseMimeType: 'application/json',
-        },
-      }),
-    });
-
-    if (!res.ok) {
-      lastErr = await res.text();
-      continue;
-    }
-
-    const data = await res.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const parsed = parseAgentJson(rawText);
-    return buildResponseFromParsed(parsed, 'gemini', userMessage);
-  }
-
-  throw new Error(lastErr || 'Falha ao consultar Gemini API');
+  return buildResponseFromParsed(parsed, 'deepseek', userMessage, movies);
 }
 
 async function callGroqAgent(
   apiKey: string,
   systemPrompt: string,
   history: ChatTurn[],
-  userMessage: string
+  userMessage: string,
+  movies: MovieTemplate[]
 ): Promise<ButlerAgentResponse> {
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -432,12 +646,9 @@ async function callGroqAgent(
   const data = await res.json();
   const rawText = data?.choices?.[0]?.message?.content || '{}';
   const parsed = parseAgentJson(rawText);
-  return buildResponseFromParsed(parsed, 'groq', userMessage);
+  return buildResponseFromParsed(parsed, 'groq', userMessage, movies);
 }
 
-/**
- * Built-in local intelligence when the user hasn't pasted an API key yet
- */
 function runLocalFallbackAgent(
   userMessage: string,
   movies: MovieTemplate[],
@@ -449,36 +660,27 @@ function runLocalFallbackAgent(
   const unwatched = publicMovies.filter((m) => !chosenIds.has(m.id));
   const pool = unwatched.length > 0 ? unwatched : publicMovies;
 
-  // Check if user asked to add/hang a new movie on the wall
-  const addMatch =
-    userMessage.match(/(?:pendur(?:e|ar)|adicion(?:e|ar)|coloc(?:a|ar)|busca(?:r)?)\s+(?:o\s+filme\s+)?["']?([a-zA-ZÀ-ÿ0-9\s:!-]{3,35})["']?/i);
-  if (addMatch && addMatch[1] && !q.includes('novo que não')) {
-    const query = addMatch[1].trim();
+  const extractedToHang = extractMovieTitleToHang(userMessage);
+  if (extractedToHang) {
     return {
-      reply: `Excelente pedido! Vou buscar "${query}" nos arquivos sombrios do IMDb agora mesmo e pendurar um novo quadro na parede para vocês dois.`,
-      action: { type: 'ADD_NEW_MOVIE', movieQuery: query },
-      suggestedFollowUps: [
-        'Inspecionar os detalhes desse novo quadro',
-        'Qual quadro da parede tem a maior nota no IMDb?',
-        'Escolher este filme para hoje à noite!',
-      ],
+      reply: `Com todo prazer, meus caros! Vou buscar "${extractedToHang}" nos arquivos sombrios do IMDb agora mesmo e pendurar um novo quadro na parede do corredor para vocês dois.`,
+      action: { type: 'ADD_NEW_MOVIE', movieQuery: extractedToHang },
+      suggestedFollowUps: [],
       providerUsed: 'local_fallback',
     };
   }
 
-  if (q.includes('novo') && (q.includes('pendur') || q.includes('sugir') || q.includes('fora'))) {
-    const externalSuggestions = ['Sinister', 'Midsommar', 'The Babadook', 'It Follows', 'Nosferatu'];
-    const pick = externalSuggestions[Math.floor(Math.random() * externalSuggestions.length)];
-    return {
-      reply: `Se desejam sangue novo na galeria, permita-me buscar "${pick}" nos registros ocultos e pendurar a tela dele na parede agora mesmo!`,
-      action: { type: 'ADD_NEW_MOVIE', movieQuery: pick },
-      suggestedFollowUps: [
-        'Abrir inspeção desse quadro novo',
-        'Quero o filme mais assustador da parede',
-        'Pendure outro filme surpresa na parede',
-      ],
-      providerUsed: 'local_fallback',
-    };
+  const explicitRemove = /(?:exclu|remov|tir|apag|delet)/i.test(userMessage);
+  if (explicitRemove) {
+    const target = findMovieMentionedInText(userMessage, movies);
+    if (target) {
+      return {
+        reply: `Imediatamente! Retirei o quadro "${target.title}" da parede do corredor e o guardei nas catacumbas da mansão.`,
+        action: { type: 'REMOVE_MOVIE', movieId: target.id },
+        suggestedFollowUps: [],
+        providerUsed: 'local_fallback',
+      };
+    }
   }
 
   if (
@@ -487,18 +689,26 @@ function runLocalFallbackAgent(
     q.includes('netflix') ||
     q.includes('prime') ||
     q.includes('onde passa') ||
-    q.includes('onde ver')
+    q.includes('onde ver') ||
+    q.includes('alug')
   ) {
-    return {
-      reply: `Ajustando meu monóculo de 1894 para espiar as caixas luminosas modernas de vocês: no Brasil, clássicos como "O Iluminado", "O Exorcista", "Invocação do Mal" e "Hereditário" costumam assombrar os salões da Max (HBO) e do Prime Video; "A Mosca" repousa no Disney+; "Sorria" e "O Chamado" vagam pelo Paramount+ e Prime Video; e quase todos podem ser invocados por aluguel digital na Apple TV e YouTube Filmes!`,
-      action: { type: 'NONE' },
-      suggestedFollowUps: [
-        'Qual quadro da parede dá mais medo?',
-        'Sugira uma opção de terror psicológico',
-        'Qual tem a maior nota no IMDb?',
-      ],
-      providerUsed: 'local_fallback',
-    };
+    const target = findMovieMentionedInText(userMessage, movies) || pool[0];
+    if (target) {
+      const offers = getMovieStreamingOffers(target)
+        .map(
+          (o) =>
+            `${o.platform} (${
+              o.type === 'subscription' ? 'Incluso na assinatura' : o.priceInfo || 'Aluguel Digital'
+            })`
+        )
+        .join('; ');
+      return {
+        reply: `Ajustando meu monóculo de 1894 para espiar as caixas luminosas modernas de vocês: "${target.title}" (${target.year}) encontra-se disponível em: ${offers}!`,
+        action: { type: 'WALK_TO_PAINTING', movieId: target.id },
+        suggestedFollowUps: [],
+        providerUsed: 'local_fallback',
+      };
+    }
   }
 
   if (pool.length > 0 && (q.includes('imdb') || q.includes('nota') || q.includes('melhor'))) {
@@ -506,13 +716,9 @@ function runLocalFallbackAgent(
       (a, b) => parseFloat(b.imdbRating || '7.0') - parseFloat(a.imdbRating || '7.0')
     )[0];
     return {
-      reply: `Entre os quadros da galeria, "${best.title}" (${best.year}) ostenta a maior aclamação no IMDb com ★ ${best.imdbRating}/10. Acompanhem meu candelabro até a moldura dele.`,
+      reply: `Entre os quadros da galeria, "${best.title}" (${best.year}) ostenta a maior aclamação no IMDb com ★ ${best.imdbRating}/10. Acompanhem meu candelabro até a moldura dele!`,
       action: { type: 'WALK_TO_PAINTING', movieId: best.id },
-      suggestedFollowUps: [
-        `Onde assistir ${best.title}?`,
-        `Abrir detalhes de ${best.title}`,
-        `Escolher ${best.title} para assistir hoje`,
-      ],
+      suggestedFollowUps: [],
       providerUsed: 'local_fallback',
     };
   }
@@ -520,35 +726,17 @@ function runLocalFallbackAgent(
   if (pool.length > 0 && (q.includes('medo') || q.includes('assustador') || q.includes('susto') || q.includes('bpm'))) {
     const scariest = [...pool].sort((a, b) => b.bpm - a.bpm)[0];
     return {
-      reply: `Se a coragem de vocês está em dia, "${scariest.title}" atinge ${scariest.bpm} BPM no Terrômetro (Nível ${scariest.fearLevel}/5). Estou levando vocês até o quadro dele agora.`,
+      reply: `Se a coragem de vocês está em dia, "${scariest.title}" atinge ${scariest.bpm} BPM no Terrômetro (Nível ${scariest.fearLevel}/5). Estou levando vocês até o quadro dele agora!`,
       action: { type: 'WALK_TO_PAINTING', movieId: scariest.id },
-      suggestedFollowUps: [
-        `Onde assistir ${scariest.title}?`,
-        `Inspecionar ${scariest.title}`,
-        `Selar nosso destino com ${scariest.title}!`,
-      ],
-      providerUsed: 'local_fallback',
-    };
-  }
-
-  if (pool.length > 0 && (q.includes('escolher') || q.includes('selar') || q.includes('assistir esse'))) {
-    const target = pool[0];
-    return {
-      reply: `Que assim seja! As velas se apagam e o pacto da noite será selado com "${target.title}". Bom filme ao casal!`,
-      action: { type: 'START_RITUAL', movieId: target.id },
       suggestedFollowUps: [],
       providerUsed: 'local_fallback',
     };
   }
 
   return {
-    reply: `Estou ouvindo vocês perfeitamente entre o ranger das tábuas e o estalar das velas! Digam-me, Caldas e Aninha: querem apenas bater um papo com este humilde mordomo desencarnado de 1894 ou estão procurando que tipo de pesadelo para assistir hoje?`,
+    reply: `Estou ouvindo vocês perfeitamente entre o ranger das tábuas e o estalar das velas! Digam-me, Caldas e Aninha: querem pedir sugestões para pendurarmos na parede, perguntar em qual streaming assistir algum filme ou examinar um dos quadros do corredor?`,
     action: { type: 'NONE' },
-    suggestedFollowUps: [
-      'Como você virou o fantasma desta mansão?',
-      'Qual quadro da parede dá mais medo?',
-      'Sugira e pendure um filme novo na parede!',
-    ],
+    suggestedFollowUps: [],
     providerUsed: 'local_fallback',
   };
 }
@@ -569,26 +757,28 @@ export async function askButlerAgent(params: {
           apiKey,
           systemPrompt,
           params.history,
-          params.userMessage
+          params.userMessage,
+          params.movies
         );
       } else if (apiKey.startsWith('AIza') || apiKey.startsWith('AQ.')) {
         return await callGeminiAgent(
           apiKey,
           systemPrompt,
           params.history,
-          params.userMessage
+          params.userMessage,
+          params.movies
         );
       } else {
         return await callDeepSeekAgent(
           apiKey,
           systemPrompt,
           params.history,
-          params.userMessage
+          params.userMessage,
+          params.movies
         );
       }
     } catch {
-      // If key has Insufficient Balance (e.g. DeepSeek $0 balance) or rate-limit,
-      // seamlessly route to the real Free Cloud Reasoning LLM!
+      // Fallback to Free Cloud Reasoning LLM if primary key fails
     }
   }
 
@@ -596,7 +786,8 @@ export async function askButlerAgent(params: {
     return await callFreeCloudReasoningAgent(
       systemPrompt,
       params.history,
-      params.userMessage
+      params.userMessage,
+      params.movies
     );
   } catch {
     return runLocalFallbackAgent(

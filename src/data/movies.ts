@@ -122,7 +122,7 @@ export const INITIAL_MOVIES: MovieTemplate[] = [
   },
   {
     "id": "movie-slot-1793478338428",
-    "tapeNumber": "QUADRO 5 // GALERIA",
+    "tapeNumber": "QUADRO 5 // GALERIA DA MANSÃO",
     "title": "Saccharine",
     "originalTitle": "Saccharine",
     "year": 2026,

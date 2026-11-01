@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { MovieTemplate } from '../types/horror';
 import { PosterCanvas } from './PosterCanvas';
+import { getMovieStreamingOffers } from '../utils/movieAutoFill';
 import { soundEngine } from '../utils/soundEngine';
-import { Skull, Activity, Eye, Film, Star } from 'lucide-react';
+import { Skull, Activity, Eye, Film, Star, Tv } from 'lucide-react';
 
 interface MovieCardProps {
   movie: MovieTemplate;
@@ -152,11 +153,33 @@ export const MovieCard: React.FC<MovieCardProps> = ({
         </div>
       </div>
 
-      {/* Synopsis Excerpt */}
-      <div className="px-3.5 pb-3">
+      {/* Synopsis Excerpt & Streaming Badges */}
+      <div className="px-3.5 pb-3 space-y-2">
         <p className="font-serif-horror text-sm text-zinc-300/90 line-clamp-3 leading-relaxed">
           {movie.synopsis}
         </p>
+
+        <div className="flex flex-wrap items-center gap-1 pt-1 border-t border-[#220c12]">
+          <Tv className="w-3 h-3 text-cyan-400 mr-0.5 shrink-0" />
+          {getMovieStreamingOffers(movie)
+            .slice(0, 2)
+            .map((offer, idx) => {
+              const isSub = offer.type === 'subscription';
+              return (
+                <span
+                  key={`${offer.platform}-${idx}`}
+                  className={`px-1.5 py-0.5 font-vt text-[11px] border ${
+                    isSub
+                      ? 'bg-emerald-950/45 border-emerald-700/70 text-emerald-200'
+                      : 'bg-amber-950/45 border-amber-700/70 text-amber-200'
+                  }`}
+                >
+                  {isSub ? '🟢' : '🟡'} {offer.platform} (
+                  {isSub ? 'No Catálogo' : 'Aluguel'})
+                </span>
+              );
+            })}
+        </div>
       </div>
 
       {/* Bottom Bar */}

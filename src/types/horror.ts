@@ -29,6 +29,12 @@ export interface HorrorAIBreakdown {
   visceral: number;      // 0..100 (Gore / physical threat)
 }
 
+export interface StreamingOffer {
+  platform: string; // e.g. "Max (HBO)", "Prime Video", "Apple TV", "MUBI"
+  type: 'subscription' | 'rent' | 'unavailable'; // 'subscription' = Incluso na assinatura, 'rent' = Aluguel / Compra
+  priceInfo?: string; // e.g. "Incluso na assinatura" or "Aluguel R$ 11,90"
+}
+
 export interface MovieTemplate {
   id: string;
   tapeNumber: string; // e.g. "QUADRO I // ALA LESTE"
@@ -44,6 +50,7 @@ export interface MovieTemplate {
   aiBreakdown?: HorrorAIBreakdown; // 4-axis fear breakdown
   tags: HorrorTag[];
   synopsis: string;
+  streamingPlatforms?: StreamingOffer[]; // Brazilian streaming & rental availability
   whyIChoseIt?: string;
   curseWhisper: string; // Disturbing message on hover
   posterArt: PosterArtType;

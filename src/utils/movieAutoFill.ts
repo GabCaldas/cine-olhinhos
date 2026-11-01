@@ -1,4 +1,4 @@
-import { HorrorAIBreakdown, HorrorTag, MovieTemplate } from '../types/horror';
+import { HorrorAIBreakdown, HorrorTag, MovieTemplate, StreamingOffer } from '../types/horror';
 import { analyzeMovieHorrorAI } from './horrorAiAnalyzer';
 import { getStoredAgentApiKey } from './cloudSync';
 
@@ -15,6 +15,7 @@ export interface AutoFillMovieResult {
   aiBreakdown: HorrorAIBreakdown;
   tags: HorrorTag[];
   synopsis: string;
+  streamingPlatforms: StreamingOffer[];
   posterUrl: string;
   curseWhisper: string;
   source: string;
@@ -30,6 +31,7 @@ const CURATED_HORROR_DB: Array<{
   synopsis: string;
   posterUrl: string;
   director: string;
+  streamingPlatforms: StreamingOffer[];
 }> = [
   {
     keywords: ['frailty', 'a mao do diabo', 'mao do diabo'],
@@ -43,6 +45,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BM2MyMWVjNGYtZmRkOC00ZWI4LWI2OWEtYzY3YjNiZjgwNGFkXkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Um homem entra na sede do FBI no Texas afirmando saber a verdadeira identidade do assassino em série conhecido como "Mão de Deus". Ele revela sua infância sombria ao lado do pai viúvo e fanático, que após receber uma visão acreditava que a família fora escolhida para destruir demônios disfarçados de pessoas comuns.',
+    streamingPlatforms: [
+      { platform: 'Prime Video (Lionsgate+ / MGM)', type: 'subscription', priceInfo: 'Incluso no canal / assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel ou Compra Digital' },
+      { platform: 'Amazon Prime Store', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 11,90)' },
+    ],
   },
   {
     keywords: ['the dark and the wicked', 'o sombrio e o perverso'],
@@ -56,6 +63,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BMDllNzZjY2MtNWVjNC00YjlhLWI2MzItNjJjMmY4M2JlMTI0XkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Em uma fazenda isolada no interior do Texas, dois irmãos voltam para casa quando o pai adoece gravemente. A mãe, perturbada, implora para que eles não fiquem antes de tirar a própria vida, deixando os filhos cercados por uma entidade maligna e implacável que se alimenta do luto e da dor da família.',
+    streamingPlatforms: [
+      { platform: 'Prime Video (Adrenalina Pura)', type: 'subscription', priceInfo: 'Incluso na assinatura do canal' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 14,90)' },
+      { platform: 'YouTube Filmes / Google TV', type: 'rent', priceInfo: 'Aluguel Digital' },
+    ],
   },
   {
     keywords: ['saccharine'],
@@ -69,6 +81,10 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BMWNhNjFjZjYtNmViNi00MDRmLTk3ZTMtYmRiMDBhMTlkMjY1XkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Uma estudante de medicina obcecada pelo próprio corpo adquire no mercado clandestino uma pílula milagrosa de emagrecimento feita a partir de cinzas humanas cremadas. O efeito inicial parece perfeito, mas logo ela passa a ser assombrada de forma visceral e faminta pelo espírito da pessoa cujos restos mortais está ingerindo.',
+    streamingPlatforms: [
+      { platform: 'Apple TV / Prime Video (VOD)', type: 'rent', priceInfo: 'Lançamento de Festival (Aluguel Digital)' },
+      { platform: 'MUBI / Shudder', type: 'subscription', priceInfo: 'Circuito de Festivais / Catálogo Cult' },
+    ],
   },
   {
     keywords: ['frewaka', 'fréwaka'],
@@ -82,6 +98,10 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BM2IyNTI0MzQtNDJkOC00N2QzLTlmZGMtNTUxYWYyZDg3NzdlXkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Uma cuidadora marcada por um luto recente é enviada a um vilarejo remoto na Irlanda para cuidar de Peig, uma idosa reclusa e aterrorizada que acredita ter sido raptada por entidades pagãs do folclore celta na juventude. Quando batidas sinistras ecoam à porta durante a noite, traumas ocultos e forças ancestrais despertam.',
+    streamingPlatforms: [
+      { platform: 'Shudder / AMC+', type: 'subscription', priceInfo: 'Incluso na assinatura (Catálogo Internacional)' },
+      { platform: 'Apple TV / Prime Video', type: 'rent', priceInfo: 'Aluguel Digital (VOD)' },
+    ],
   },
   {
     keywords: ['jacobs ladder', "jacob's ladder", 'alucinacoes do passado'],
@@ -95,6 +115,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BNjUwMTU2ODgxOF5BMl5BanBnXkFtZTgwMjU1NTk4NjE@._V1_SX600.jpg',
     synopsis:
       'Assombrado pela morte de seu filho pequeno e pelas memórias brutais da Guerra do Vietnã, o veterano Jacob Singer tenta manter a sanidade em Nova York. Porém, à medida que alucinações grotescas e figuras sem rosto passam a persegui-lo acordado, a fronteira entre a realidade, a loucura e o próprio inferno começa a desmoronar.',
+    streamingPlatforms: [
+      { platform: 'Prime Video (Filmelier+ / MUBI)', type: 'subscription', priceInfo: 'Incluso na assinatura do canal' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 11,90)' },
+      { platform: 'Amazon Prime Store', type: 'rent', priceInfo: 'Aluguel ou Compra Digital' },
+    ],
   },
   {
     keywords: ['heresy', 'witte wieven'],
@@ -108,6 +133,10 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BMzZlYzk4OWMtY2JhYi00YWM0LTkyMGMtMDc5NGU4MzZiNmNkXkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Em um vilarejo medieval isolado e fanático devastado pela fome, uma mulher desesperada para curar sua infertilidade adentra a floresta proibida, onde habitam espíritos ancestrais da névoa conhecidos como Witte Wieven. O que ela encontra nas trevas desperta a fúria da comunidade e desafia sua própria fé.',
+    streamingPlatforms: [
+      { platform: 'Apple TV / Prime Video (VOD)', type: 'rent', priceInfo: 'Aluguel Digital (Lançamento Folk Horror)' },
+      { platform: 'Shudder / Fantasia Cult', type: 'subscription', priceInfo: 'Catálogo Internacional' },
+    ],
   },
   {
     keywords: ['the fly', 'a mosca'],
@@ -121,6 +150,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BMjI5NDE3NTE0NV5BMl5BanBnXkFtZTgwNzY5NTk4NjE@._V1_SX600.jpg',
     synopsis:
       'O brilhante e excêntrico cientista Seth Brundle decide testar em si mesmo sua máquina de teletransporte, sem perceber que uma mosca entrou na cápsula com ele. À medida que seus átomos se fundem aos do inseto, sua mente e seu corpo sofrem uma metamorfose grotesca e irreversível diante da mulher que o ama.',
+    streamingPlatforms: [
+      { platform: 'Disney+ (aba Star)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 11,90)' },
+      { platform: 'Prime Video Store', type: 'rent', priceInfo: 'Aluguel Digital' },
+    ],
   },
   {
     keywords: ['the exorcist', 'o exorcista'],
@@ -134,6 +168,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BZjg3YjE4ZjAtYTdmYS00ZTBkLWE1ZjgtNzAzODUwNzRiYjlmXkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Quando a pequena Regan começa a apresentar mudanças brutais de comportamento, voz demoníaca e fenômenos inexplicáveis que a medicina não consegue diagnosticar, sua mãe desesperada recorre a dois padres para enfrentar uma antiga entidade maligna em um ritual de exorcismo mortal.',
+    streamingPlatforms: [
+      { platform: 'Max (HBO Max)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 7,90)' },
+      { platform: 'Prime Video Store', type: 'rent', priceInfo: 'Aluguel ou Compra Digital' },
+    ],
   },
   {
     keywords: ['hereditario', 'hereditary'],
@@ -147,6 +186,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BNTEyZGQwODctYWJjZi00NjFmLTg3YmEtMzlhNjljOGZhMWMyXkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Após a morte da reclusa matriarca da família Graham, sua filha e netos começam a desvendar segredos ancestrais cada vez mais aterrorizantes sobre sua linhagem e um destino sinistro que herdaram.',
+    streamingPlatforms: [
+      { platform: 'Max (HBO Max)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV / YouTube', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 11,90)' },
+    ],
   },
   {
     keywords: ['a bruxa', 'the witch', 'vvitch'],
@@ -160,6 +204,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BMTUyNzkwMzAxOF5BMl5BanBnXkFtZTgwMzc1OTk1NjE@._V1_SX600.jpg',
     synopsis:
       'Nova Inglaterra, década de 1630. Uma família devota se estabelece à beira de uma floresta sombria. Quando o filho recém-nascido desaparece misteriosamente, a paranoia e forças ocultas da mata tomam conta.',
+    streamingPlatforms: [
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Globoplay (Telecine)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 11,90)' },
+    ],
   },
   {
     keywords: ['fale comigo', 'talk to me'],
@@ -173,6 +222,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BY2I2NzJmY2YtYTM3Ni00ZGJhLThkZTItODFhMzhlZjZkMDQ5XkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Um grupo de amigos descobre como conjurar espíritos usando uma mão embalsamada misteriosa. A brincadeira vira um vício perigoso até que um deles ultrapassa os 90 segundos permitidos e abre a porta para as trevas.',
+    streamingPlatforms: [
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Globoplay (Telecine)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 14,90)' },
+    ],
   },
   {
     keywords: ['o iluminado', 'the shining'],
@@ -186,6 +240,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BNmM5ZThhY2ItOGRjOS00NzZiLWEwYTItNDgyMjFkOTgxMmRiXkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Durante o inverno rigoroso, um escritor aceita trabalhar como zelador do isolado Hotel Overlook com sua esposa e seu filho clarividente. Porém, as presenças fantasmagóricas do hotel começam a levá-lo à loucura.',
+    streamingPlatforms: [
+      { platform: 'Max (HBO Max)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 7,90)' },
+      { platform: 'Prime Video Store', type: 'rent', priceInfo: 'Aluguel Digital' },
+    ],
   },
   {
     keywords: ['invocacao do mal', 'the conjuring'],
@@ -199,6 +258,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BMTM3NjA1NDMyMV5BMl5BanBnXkFtZTcwMDQzNDMzOQ@@._V1_SX600.jpg',
     synopsis:
       'Os investigadores paranormais Ed e Lorraine Warren são chamados para ajudar uma família aterrorizada por uma presença obscura em uma fazenda isolada onde todos os relógios param exatamente às 03:07 da madrugada.',
+    streamingPlatforms: [
+      { platform: 'Max (HBO Max)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 7,90)' },
+    ],
   },
   {
     keywords: ['o chamado', 'the ring', 'ringu'],
@@ -212,6 +276,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BNDA2NTg2NjE4Ml5BMl5BanBnXkFtZTYwMjYxMDg5._V1_SX600.jpg',
     synopsis:
       'Uma jornalista investiga uma fita VHS amaldiçoada cheia de imagens perturbadoras. Após assisti-la, o telefone toca e uma voz anuncia que restam apenas sete dias de vida.',
+    streamingPlatforms: [
+      { platform: 'Paramount+', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 11,90)' },
+    ],
   },
   {
     keywords: ['a autopsia', 'the autopsy of jane doe'],
@@ -225,6 +294,11 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BMjA2MTEzMzkzM15BMl5BanBnXkFtZTgwMjM2MTM5MDI@._V1_SX600.jpg',
     synopsis:
       'Pai e filho médicos-legistas recebem o corpo de uma jovem desconhecida sem causa aparente de morte. Enquanto uma tempestade os prende no necrotério subterrâneo, cada incisão revela segredos impossíveis.',
+    streamingPlatforms: [
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Pluto TV / Runtime', type: 'subscription', priceInfo: 'Gratuito com anúncios' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital' },
+    ],
   },
   {
     keywords: ['sorria', 'smile'],
@@ -238,6 +312,99 @@ const CURATED_HORROR_DB: Array<{
       'https://m.media-amazon.com/images/M/MV5BNjFhMzBlNzktMjE2Ni00YTMyLWI2YWUtYmM1N2QxMDQwZmZhXkEyXkFqcGc@._V1_SX600.jpg',
     synopsis:
       'Após testemunhar um incidente traumático e bizarro envolvendo uma paciente, a médica Rose Cotter começa a vivenciar acontecimentos assustadores que ela não consegue explicar, perseguida por uma entidade que sorri através das pessoas.',
+    streamingPlatforms: [
+      { platform: 'Netflix', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Paramount+', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV / Prime Video', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 11,90)' },
+    ],
+  },
+  {
+    keywords: ['midsommar'],
+    title: 'Midsommar: O Mal Não Espera a Noite',
+    originalTitle: 'Midsommar',
+    year: 2019,
+    duration: '2h 28min',
+    imdbRating: '7.1',
+    director: 'Ari Aster',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BMzQxNzQzOTQwM15BMl5BanBnXkFtZTgwMDQ2NTcwODM@._V1_SX600.jpg',
+    synopsis:
+      'Abalada por uma tragédia familiar devastadora, Dani viaja com o namorado e seus amigos para um festival de verão que acontece apenas a cada 90 anos em uma vila remota da Suécia. O que começa como um retiro ensolarado se transforma em um ritual pagão perturbador.',
+    streamingPlatforms: [
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Max (HBO Max)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital' },
+    ],
+  },
+  {
+    keywords: ['the substance', 'a substancia'],
+    title: 'A Substância',
+    originalTitle: 'The Substance',
+    year: 2024,
+    duration: '2h 21min',
+    imdbRating: '7.3',
+    director: 'Coralie Fargeat',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BZDQ1NGE5MGMtYzdlZC00ODExLWJlMDMtNWU4NjA5YzYwMDEwXkEyXkFqcGc@._V1_SX600.jpg',
+    synopsis:
+      'Demitida de seu programa de aeróbica na televisão por causa da idade, a estrela Elisabeth Sparkle recorre a uma droga clandestina de replicação celular que cria uma versão mais jovem e perfeita de si mesma — desde que as duas dividam exatamente uma semana cada no mesmo corpo.',
+    streamingPlatforms: [
+      { platform: 'MUBI', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Prime Video (Canal MUBI)', type: 'subscription', priceInfo: 'Incluso no canal MUBI' },
+      { platform: 'Apple TV / Prime Video', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 19,90)' },
+    ],
+  },
+  {
+    keywords: ['sinister', 'a entidade'],
+    title: 'A Entidade',
+    originalTitle: 'Sinister',
+    year: 2012,
+    duration: '1h 50min',
+    imdbRating: '6.8',
+    director: 'Scott Derrickson',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BMjI5MTg1Njg0Ml5BMl5BanBnXkFtZTcwNzg2Mjc4Nw@@._V1_SX600.jpg',
+    synopsis:
+      'Em busca de um novo livro de sucesso, um escritor de crimes reais se muda com a família para a casa onde os antigos moradores foram brutalmente assassinados. No sótão, ele encontra uma caixa de fitas Super 8 caseiras que revelam uma entidade ancestral devoradora de almas.',
+    streamingPlatforms: [
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 9,90)' },
+    ],
+  },
+  {
+    keywords: ['it follows', 'corrente do mal'],
+    title: 'Corrente do Mal',
+    originalTitle: 'It Follows',
+    year: 2014,
+    duration: '1h 40min',
+    imdbRating: '6.8',
+    director: 'David Robert Mitchell',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BMmU0MjBlYzYtZWY0MC00MjliLWI3ZmUtMzhlZDVjMWVmYWY4XkEyXkFqcGc@._V1_SX600.jpg',
+    synopsis:
+      'Após um encontro íntimo aparentemente inocente, a jovem Jay descobre que recebeu uma maldição implacável: uma entidade metamorfa que assume a aparência de qualquer pessoa e caminha lentamente em sua direção para matá-la.',
+    streamingPlatforms: [
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'MUBI', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital' },
+    ],
+  },
+  {
+    keywords: ['the babadook', 'o babadook', 'babadook'],
+    title: 'O Babadook',
+    originalTitle: 'The Babadook',
+    year: 2014,
+    duration: '1h 34min',
+    imdbRating: '6.8',
+    director: 'Jennifer Kent',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BMTk0NzMzODc2NF5BMl5BanBnXkFtZTgwOTYzNTM1MzE@._V1_SX600.jpg',
+    synopsis:
+      'Seis anos após a morte violenta do marido, uma mãe exausta tenta lidar com o medo constante de seu filho pequeno. Quando um misterioso livro infantil pop-up chamado "Mister Babadook" aparece na casa, uma presença sombria passa a dominar os dois.',
+    streamingPlatforms: [
+      { platform: 'Prime Video (Adrenalina Pura)', type: 'subscription', priceInfo: 'Incluso na assinatura do canal' },
+      { platform: 'Apple TV / YouTube', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 9,90)' },
+    ],
   },
 ];
 
@@ -258,6 +425,43 @@ export function findCuratedMovieMatch(titleOrQuery: string) {
 }
 
 /**
+ * Returns the movie's streaming & rental availability in Brazil, checking stored offers first,
+ * then the curated horror database, then a clear fallback.
+ */
+export function getMovieStreamingOffers(movie: MovieTemplate): StreamingOffer[] {
+  if (movie.isSecret) {
+    return [
+      {
+        platform: 'Sessão Exclusiva na Mansão',
+        type: 'subscription',
+        priceInfo: 'Incluso no coração de Caldas & Aninha <3',
+      },
+    ];
+  }
+  if (Array.isArray(movie.streamingPlatforms) && movie.streamingPlatforms.length > 0) {
+    return movie.streamingPlatforms;
+  }
+  const curated =
+    findCuratedMovieMatch(movie.title) ||
+    (movie.originalTitle ? findCuratedMovieMatch(movie.originalTitle) : undefined);
+  if (curated && curated.streamingPlatforms.length > 0) {
+    return curated.streamingPlatforms;
+  }
+  return [
+    {
+      platform: 'Apple TV / Prime Video Store',
+      type: 'rent',
+      priceInfo: 'Disponível por Aluguel / Compra Digital (VOD)',
+    },
+    {
+      platform: 'Prime Video / Canais Especializados',
+      type: 'subscription',
+      priceInfo: 'Consulte disponibilidade no catálogo atual',
+    },
+  ];
+}
+
+/**
  * Detects whether a synopsis is broken, encyclopedic ("X é um filme de 1990 dirigido por..."),
  * an actor/director biography ("Rósa Arianna McGowan é uma atriz..."), a generic placeholder,
  * or untranslated English text.
@@ -267,7 +471,6 @@ export function isBadSynopsis(synopsis?: string): boolean {
   const s = synopsis.trim();
   if (s.length < 55) return true;
 
-  // Generic placeholders
   if (
     /^(Filme de terror estrelado por|Um filme de terror selecionado|Um mistério sombrio escolhido)/i.test(
       s
@@ -276,7 +479,6 @@ export function isBadSynopsis(synopsis?: string): boolean {
     return true;
   }
 
-  // Actor / person biographies (e.g., Rose McGowan)
   if (
     /\b(é uma? atriz|é um ator|é uma? diretora?|é um cineasta|nascid[oa] na|nascid[oa] em|conhecid[oa] principalmente por seu papel|maior bilheteira em seu país)\b/i.test(
       s
@@ -285,7 +487,6 @@ export function isBadSynopsis(synopsis?: string): boolean {
     return true;
   }
 
-  // Wikipedia encyclopedic credits header instead of story plot
   if (
     /\b(é um filme\b|dirigido e estrelado por|escrito e dirigido por|dirigido por [A-ZÀ-Ú][\w\s]+,?\s+com roteiro|estreia na direção|produzido por .* e distribuído)\b/i.test(
       s
@@ -294,7 +495,6 @@ export function isBadSynopsis(synopsis?: string): boolean {
     return true;
   }
 
-  // Untranslated English synopsis check
   const englishStopWords = (
     s.match(/\b(the|and|with|from|their|after|when|who|into|that|this|young|family|woman|man)\b/gi) ||
     []
@@ -306,32 +506,52 @@ export function isBadSynopsis(synopsis?: string): boolean {
   return false;
 }
 
+function extractGeminiText(data: Record<string, unknown>): string {
+  const candidates = data?.candidates as Array<{
+    content?: { parts?: Array<{ text?: string; thought?: boolean }> };
+  }> | undefined;
+  const parts = candidates?.[0]?.content?.parts || [];
+  const nonThought = parts.filter((p) => !p.thought && typeof p.text === 'string');
+  if (nonThought.length > 0) {
+    return nonThought.map((p) => p.text).join('').trim();
+  }
+  return (parts[parts.length - 1]?.text || '').trim();
+}
+
 /**
  * Generates or translates a real, atmospheric, spoiler-free plot synopsis in Brazilian Portuguese
- * using Google Gemini 2.5 Flash (or free Cloud LLM fallback), never returning Wikipedia credits headers.
+ * AND fetches accurate Brazilian streaming vs. rental platforms using Gemini 3.5 Flash.
  */
-export async function generatePortuguesePlotSynopsis(params: {
+export async function enrichMovieSynopsisAndStreamingWithAI(params: {
   title: string;
   originalTitle?: string;
   year?: number;
   director?: string;
   rawPlot?: string;
-}): Promise<string | null> {
+}): Promise<{ synopsis?: string; streamingPlatforms?: StreamingOffer[] } | null> {
   const curated =
     findCuratedMovieMatch(params.title) ||
     (params.originalTitle ? findCuratedMovieMatch(params.originalTitle) : undefined);
   if (curated && !isBadSynopsis(curated.synopsis)) {
-    return curated.synopsis;
+    return {
+      synopsis: curated.synopsis,
+      streamingPlatforms: curated.streamingPlatforms,
+    };
   }
 
-  const systemInstruction = `Você é um curador especialista em cinema de terror.
-Sua tarefa é escrever APENAS a sinopse do enredo (a história do que acontece no filme) em português do Brasil, de forma envolvente, sombria e SEM SPOILERS do final, em 2 a 3 frases (entre 160 e 340 caracteres).
+  const systemInstruction = `Você é um curador especialista em cinema de terror no Brasil.
+Responda APENAS com um JSON válido contendo:
+1. "synopsis": A sinopse real do enredo (a história do que acontece no filme) em português do Brasil, de forma envolvente, sombria e SEM SPOILERS do final, em 2 a 3 frases (entre 160 e 340 caracteres). PROIBIDO começar com ficha técnica ("X é um filme dirigido por...") e PROIBIDO escrever biografia de atores.
+2. "streamingPlatforms": Lista de 2 a 3 plataformas onde o filme está disponível no Brasil, diferenciando claramente se está INCLUSO NA ASSINATURA ("type": "subscription") ou se é por ALUGUEL / COMPRA DIGITAL ("type": "rent").
 
-REGRAS OBRIGATÓRIAS:
-1. CONTE A HISTÓRIA (quem são os personagens, onde estão e qual mistério, maldição ou ameaça enfrentam).
-2. PROIBIDO começar com ficha técnica estilo Wikipédia! NUNCA escreva "X é um filme de terror de 2020 dirigido por..." ou "Estrelado por...". Comece direto na história!
-3. PROIBIDO escrever biografia de atores ou diretores.
-4. Responda APENAS com o texto puro da sinopse em português, sem aspas, sem introdução e sem markdown.`;
+Formato exato:
+{
+  "synopsis": "história do filme em português...",
+  "streamingPlatforms": [
+    { "platform": "Nome da Plataforma (ex: Max, Prime Video, Netflix, MUBI, Looke)", "type": "subscription", "priceInfo": "Incluso na assinatura" },
+    { "platform": "Apple TV / Prime Video Store", "type": "rent", "priceInfo": "Aluguel Digital (~R$ 14,90)" }
+  ]
+}`;
 
   const hasValidRawPlot =
     params.rawPlot &&
@@ -346,68 +566,76 @@ REGRAS OBRIGATÓRIAS:
     params.director ? ` — Direção/Elenco: ${params.director}` : ''
   }.${
     hasValidRawPlot
-      ? `\n\nResumo de referência do enredo (traduza/adapte apenas a história para português, removendo qualquer ficha técnica de diretor/elenco):\n"${params.rawPlot}"`
-      : '\n\nEscreva a sinopse real do enredo deste filme em português.'
+      ? `\nResumo de referência do enredo em inglês/português: "${params.rawPlot}"`
+      : ''
   }`;
 
   const apiKey = getStoredAgentApiKey();
+  const geminiModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash'];
 
-  // 1. Try Google Gemini 2.5 Flash
   if (apiKey) {
-    try {
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(
-        apiKey
-      )}`;
-      const res = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemInstruction }] },
-          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-          generationConfig: {
-            temperature: 0.4,
-            maxOutputTokens: 300,
-          },
-        }),
-      });
-      if (res.ok) {
+    for (const model of geminiModels) {
+      try {
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(
+          apiKey
+        )}`;
+        const res = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemInstruction }] },
+            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+            generationConfig: {
+              temperature: 0.35,
+              responseMimeType: 'application/json',
+            },
+          }),
+        });
+        if (!res.ok) continue;
         const data = await res.json();
-        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-        if (text && !isBadSynopsis(text)) {
-          return text.replace(/^["«]|["»]$/g, '').trim();
+        const rawText = extractGeminiText(data);
+        const firstBrace = rawText.indexOf('{');
+        const lastBrace = rawText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace > firstBrace) {
+          const parsed = JSON.parse(rawText.slice(firstBrace, lastBrace + 1));
+          const syn = typeof parsed.synopsis === 'string' ? parsed.synopsis.trim() : '';
+          const platforms: StreamingOffer[] = Array.isArray(parsed.streamingPlatforms)
+            ? parsed.streamingPlatforms
+                .filter((p: Record<string, unknown>) => p && typeof p.platform === 'string')
+                .map((p: Record<string, unknown>) => ({
+                  platform: String(p.platform),
+                  type: p.type === 'subscription' ? 'subscription' : 'rent',
+                  priceInfo: String(
+                    p.priceInfo ||
+                      (p.type === 'subscription' ? 'Incluso na assinatura' : 'Aluguel Digital')
+                  ),
+                }))
+            : [];
+          if (syn && !isBadSynopsis(syn)) {
+            return {
+              synopsis: syn,
+              streamingPlatforms: platforms.length > 0 ? platforms : undefined,
+            };
+          }
         }
-      }
-    } catch {
-      // Fall through to Pollinations fallback
-    }
-  }
-
-  // 2. Fallback: Free Cloud OpenAI-compatible reasoning endpoint
-  try {
-    const res = await fetch('https://text.pollinations.ai/openai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'openai',
-        messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.4,
-      }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      const text = data?.choices?.[0]?.message?.content?.trim();
-      if (text && !isBadSynopsis(text)) {
-        return text.replace(/^["«]|["»]$/g, '').trim();
+      } catch {
+        // try next model
       }
     }
-  } catch {
-    // Ignore
   }
 
   return null;
+}
+
+export async function generatePortuguesePlotSynopsis(params: {
+  title: string;
+  originalTitle?: string;
+  year?: number;
+  director?: string;
+  rawPlot?: string;
+}): Promise<string | null> {
+  const enriched = await enrichMovieSynopsisAndStreamingWithAI(params);
+  return enriched?.synopsis || null;
 }
 
 export async function autoFillMovieByName(query: string): Promise<AutoFillMovieResult[]> {
@@ -460,6 +688,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
           aiBreakdown: ai.aiBreakdown,
           tags: ai.tags,
           synopsis,
+          streamingPlatforms: matchedCurated?.streamingPlatforms || [],
           posterUrl: String(c.posterUrl || matchedCurated?.posterUrl || ''),
           curseWhisper: ai.curseWhisper,
           source: `${String(c.source || 'Catálogo')} + IA Terrômetro`,
@@ -516,6 +745,23 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
         const rawDesc = String(item.longDescription || item.shortDescription || '');
         const synopsis = matchedCurated?.synopsis || rawDesc;
 
+        const rentalPrice = Number(item.trackRentalPrice || 0);
+        const buyPrice = Number(item.trackPrice || 0);
+        const itunesOffers: StreamingOffer[] = [];
+        if (rentalPrice > 0 && item.currency === 'BRL') {
+          itunesOffers.push({
+            platform: 'Apple TV (iTunes BR)',
+            type: 'rent',
+            priceInfo: `Aluguel R$ ${rentalPrice.toFixed(2).replace('.', ',')}`,
+          });
+        } else if (buyPrice > 0 && item.currency === 'BRL') {
+          itunesOffers.push({
+            platform: 'Apple TV (iTunes BR)',
+            type: 'rent',
+            priceInfo: `Compra Digital R$ ${buyPrice.toFixed(2).replace('.', ',')}`,
+          });
+        }
+
         const ai = analyzeMovieHorrorAI({
           title,
           originalTitle: title,
@@ -538,6 +784,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
           aiBreakdown: ai.aiBreakdown,
           tags: ai.tags,
           synopsis,
+          streamingPlatforms: matchedCurated?.streamingPlatforms || itunesOffers,
           posterUrl: posterUrl || matchedCurated?.posterUrl || '',
           curseWhisper: ai.curseWhisper,
           source: 'Apple TV + IA Terrômetro',
@@ -579,6 +826,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
             aiBreakdown: ai.aiBreakdown,
             tags: ai.tags,
             synopsis,
+            streamingPlatforms: matchedCurated?.streamingPlatforms || [],
             posterUrl: highResImdb || matchedCurated?.posterUrl || '',
             curseWhisper: ai.curseWhisper,
             source: 'IMDb Oficial + IA Terrômetro',
@@ -610,6 +858,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
       aiBreakdown: ai.aiBreakdown,
       tags: ai.tags,
       synopsis: curatedHit.synopsis,
+      streamingPlatforms: curatedHit.streamingPlatforms,
       posterUrl: curatedHit.posterUrl,
       curseWhisper: ai.curseWhisper,
       source: 'Base Embutida + IA Terrômetro',
@@ -629,29 +878,30 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
       aiBreakdown: ai.aiBreakdown,
       tags: ai.tags,
       synopsis: '',
+      streamingPlatforms: [],
       posterUrl: '',
       curseWhisper: ai.curseWhisper,
       source: 'Análise IA Terrômetro',
     });
   }
 
-  // Ensure the primary candidates have a genuine, spoiler-free Portuguese plot synopsis (not English, not Wikipedia header, not actor bio)
+  // Enrich top candidates with genuine Portuguese plot synopsis AND Brazilian streaming/rental platforms
   const topCandidates = results.slice(0, 2);
   await Promise.all(
     topCandidates.map(async (item) => {
-      if (isBadSynopsis(item.synopsis)) {
-        const betterSynopsis = await generatePortuguesePlotSynopsis({
+      if (isBadSynopsis(item.synopsis) || !item.streamingPlatforms?.length) {
+        const enriched = await enrichMovieSynopsisAndStreamingWithAI({
           title: item.title,
           originalTitle: item.originalTitle,
           year: item.year,
           rawPlot: item.synopsis,
         });
-        if (betterSynopsis) {
-          item.synopsis = betterSynopsis;
+        if (enriched?.synopsis && !isBadSynopsis(enriched.synopsis)) {
+          item.synopsis = enriched.synopsis;
           const refreshedAi = analyzeMovieHorrorAI({
             title: item.title,
             originalTitle: item.originalTitle,
-            synopsis: betterSynopsis,
+            synopsis: enriched.synopsis,
           });
           item.subgenre = refreshedAi.subgenre;
           item.fearLevel = refreshedAi.fearLevel;
@@ -663,6 +913,25 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
         } else if (!item.synopsis || isBadSynopsis(item.synopsis)) {
           item.synopsis = `À medida que segredos ocultos vêm à tona em "${item.title}", forças sombrias e inexplicáveis transformam a realidade em um pesadelo sem volta.`;
         }
+
+        if (enriched?.streamingPlatforms?.length && !item.streamingPlatforms?.length) {
+          item.streamingPlatforms = enriched.streamingPlatforms;
+        }
+      }
+
+      if (!item.streamingPlatforms || item.streamingPlatforms.length === 0) {
+        item.streamingPlatforms = [
+          {
+            platform: 'Apple TV / Prime Video Store',
+            type: 'rent',
+            priceInfo: 'Disponível por Aluguel / Compra Digital (VOD)',
+          },
+          {
+            platform: 'Prime Video / Canais',
+            type: 'subscription',
+            priceInfo: 'Consulte disponibilidade no catálogo',
+          },
+        ];
       }
     })
   );

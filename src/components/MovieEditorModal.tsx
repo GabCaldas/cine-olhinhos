@@ -110,6 +110,7 @@ export const MovieEditorModal: React.FC<MovieEditorModalProps> = ({
       aiBreakdown: res.aiBreakdown,
       tags: res.tags,
       synopsis: res.synopsis,
+      streamingPlatforms: res.streamingPlatforms,
       customPosterUrl: res.posterUrl,
       curseWhisper: res.curseWhisper,
     });
@@ -172,6 +173,7 @@ export const MovieEditorModal: React.FC<MovieEditorModalProps> = ({
             aiBreakdown: best.aiBreakdown,
             tags: best.tags,
             synopsis: best.synopsis,
+            streamingPlatforms: best.streamingPlatforms,
             customPosterUrl: best.posterUrl,
             curseWhisper: best.curseWhisper,
           });

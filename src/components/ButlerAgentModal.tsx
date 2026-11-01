@@ -6,6 +6,7 @@ import {
 import {
   askButlerAgent,
   ChatTurn,
+  matchWallMovie,
 } from '../utils/butlerAgent';
 import { autoFillMovieByName } from '../utils/movieAutoFill';
 import { renderButlerPortraitCanvas } from '../utils/pixelSprites';
@@ -19,6 +20,9 @@ import {
   Frame,
   Loader2,
   Plus,
+  Eye,
+  Footprints,
+  Flame,
 } from 'lucide-react';
 
 interface ButlerAgentModalProps {
@@ -155,6 +159,7 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
         aiBreakdown: best.aiBreakdown,
         tags: best.tags,
         synopsis: best.synopsis,
+        streamingPlatforms: best.streamingPlatforms,
         curseWhisper: best.curseWhisper,
         posterArt: 'mansion_corridor',
         customPosterUrl: best.posterUrl,
@@ -197,16 +202,7 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
   };
 
   const findMovieOnWall = (idOrQuery?: string): MovieTemplate | undefined => {
-    if (!idOrQuery) return undefined;
-    const clean = idOrQuery.trim().toLowerCase();
-    return (
-      publicMovies.find((m) => m.id.toLowerCase() === clean) ||
-      publicMovies.find(
-        (m) =>
-          m.title.toLowerCase().includes(clean) ||
-          (m.originalTitle && m.originalTitle.toLowerCase().includes(clean))
-      )
-    );
+    return matchWallMovie(movies, idOrQuery);
   };
 
   const handleSendMessage = async (textToSend?: string) => {
@@ -229,18 +225,16 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
       });
 
       let actionBadge = '';
+      const actionRef = response.action?.movieId || response.action?.movieQuery;
 
-      if (response.action?.type === 'WALK_TO_PAINTING' && response.action.movieId) {
-        const target = findMovieOnWall(response.action.movieId);
+      if (response.action?.type === 'WALK_TO_PAINTING' && actionRef) {
+        const target = findMovieOnWall(actionRef);
         if (target) {
           onWalkToMovieId(target.id);
           actionBadge = `🕯️ George caminhou com vocês até o quadro "${target.title}" (${target.year})`;
         }
-      } else if (
-        response.action?.type === 'INSPECT_PAINTING' &&
-        response.action.movieId
-      ) {
-        const target = findMovieOnWall(response.action.movieId);
+      } else if (response.action?.type === 'INSPECT_PAINTING' && actionRef) {
+        const target = findMovieOnWall(actionRef);
         if (target) {
           onWalkToMovieId(target.id);
           actionBadge = `🔍 Inspecionando o quadro "${target.title}"`;
@@ -249,11 +243,8 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
             onInspectMovie(target);
           }, 900);
         }
-      } else if (
-        response.action?.type === 'START_RITUAL' &&
-        response.action.movieId
-      ) {
-        const target = findMovieOnWall(response.action.movieId);
+      } else if (response.action?.type === 'START_RITUAL' && actionRef) {
+        const target = findMovieOnWall(actionRef);
         if (target) {
           actionBadge = `🔥 Iniciando o Ritual de Escolha com "${target.title}"!`;
           setTimeout(() => {
@@ -261,18 +252,13 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
             onConfirmMovie(target);
           }, 1100);
         }
-      } else if (
-        response.action?.type === 'ADD_NEW_MOVIE' &&
-        response.action.movieQuery
-      ) {
-        const created = await createAndHangMovieByTitle(response.action.movieQuery);
+      } else if (response.action?.type === 'ADD_NEW_MOVIE' && actionRef) {
+        const created = await createAndHangMovieByTitle(actionRef);
         if (created) {
           actionBadge = `🖼️ Novo quadro pendurado na parede: "${created.title}" (${created.year} • IMDb ★ ${created.imdbRating}/10)`;
         }
-      } else if (response.action?.type === 'REMOVE_MOVIE') {
-        const target = findMovieOnWall(
-          response.action.movieId || response.action.movieQuery
-        );
+      } else if (response.action?.type === 'REMOVE_MOVIE' && actionRef) {
+        const target = findMovieOnWall(actionRef);
         if (target) {
           onRemoveMovieFromWall(target.id);
           soundEngine.playDoorCreak();
@@ -443,16 +429,41 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
                 {publicMovies.map((m, idx) => (
                   <div
                     key={m.id}
-                    className="flex items-center gap-2 px-2.5 py-1 bg-black/80 border border-zinc-700/80 text-xs font-vt text-zinc-200"
+                    className="flex items-center gap-1.5 px-2.5 py-1 bg-black/80 border border-zinc-700/80 text-xs font-vt text-zinc-200"
                   >
                     <button
                       onClick={() => {
                         onWalkToMovieId(m.id);
+                        onClose();
                       }}
-                      className="hover:text-amber-300 transition cursor-pointer"
-                      title="Ir até este quadro no corredor"
+                      className="hover:text-amber-300 transition cursor-pointer flex items-center gap-1"
+                      title="Caminhar até este quadro no corredor"
                     >
-                      {idx + 1}. {m.title} ({m.year})
+                      <Footprints className="w-3 h-3 text-amber-400" />
+                      <span>
+                        {idx + 1}. {m.title} ({m.year})
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        onWalkToMovieId(m.id);
+                        onClose();
+                        onInspectMovie(m);
+                      }}
+                      className="text-cyan-400 hover:text-cyan-200 p-0.5 hover:bg-cyan-950/70 transition cursor-pointer"
+                      title={`Abrir detalhes e onde assistir "${m.title}"`}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onConfirmMovie(m);
+                      }}
+                      className="text-amber-400 hover:text-amber-200 p-0.5 hover:bg-amber-950/70 transition cursor-pointer"
+                      title={`Escolher "${m.title}" para assistir hoje`}
+                    >
+                      <Flame className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleConfirmRemoveMovie(m)}

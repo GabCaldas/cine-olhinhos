@@ -10,6 +10,7 @@ import {
   drawMinionPixelSprite,
 } from '../utils/pixelSprites';
 import { EASTER_EGGS } from '../data/easterEggs';
+import { getMovieStreamingOffers } from '../utils/movieAutoFill';
 import { soundEngine } from '../utils/soundEngine';
 import {
   Eye,
@@ -23,6 +24,7 @@ import {
   Star,
   Bot,
   Trash2,
+  Tv,
 } from 'lucide-react';
 
 interface MansionCorridorSceneProps {
@@ -1217,6 +1219,35 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
                   <p className="font-serif-horror text-sm sm:text-base text-zinc-300 line-clamp-2 max-w-2xl">
                     {currentMovie.synopsis}
                   </p>
+
+                  {/* Streaming & Rental Badges */}
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="font-pixel text-[8px] text-cyan-300 uppercase tracking-wider flex items-center gap-1 mr-1">
+                      <Tv className="w-3 h-3 text-cyan-400" />
+                      <span>Onde assistir:</span>
+                    </span>
+                    {getMovieStreamingOffers(currentMovie).map((offer, idx) => {
+                      const isSub = offer.type === 'subscription';
+                      return (
+                        <span
+                          key={`${offer.platform}-${idx}`}
+                          className={`px-2 py-0.5 font-vt text-xs border flex items-center gap-1 ${
+                            isSub
+                              ? 'bg-emerald-950/50 border-emerald-600/70 text-emerald-200'
+                              : 'bg-amber-950/50 border-amber-600/70 text-amber-200'
+                          }`}
+                        >
+                          <span>{isSub ? '🟢' : '🟡'}</span>
+                          <strong>{offer.platform}:</strong>
+                          <span>
+                            {isSub
+                              ? 'Incluso na assinatura'
+                              : offer.priceInfo || 'Aluguel Digital'}
+                          </span>
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 
