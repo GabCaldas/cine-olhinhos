@@ -7,7 +7,16 @@ export type HorrorTag =
   | 'Mistério'
   | 'Paranormal'
   | 'Folk Horror'
-  | 'Gótico';
+  | 'Gótico'
+  | 'Animação'
+  | 'Comédia'
+  | 'Ficção Científica'
+  | 'Aventura'
+  | 'Musical'
+  | 'Romance'
+  | 'Drama'
+  | 'Cult'
+  | 'Fantasia';
 
 export type PosterArtType =
   | 'silent_fog'
@@ -57,6 +66,7 @@ export interface MovieTemplate {
   customPosterUrl?: string; // Official high-res poster URL
   ritualVariation: RitualVariation;
   isSecret?: boolean;
+  isHorror?: boolean;
 }
 
 export interface ChosenMovieRecord {
@@ -106,13 +116,13 @@ export interface CoupleConfig {
 
 export type EasterEggId =
   | 'hidden_minion'
-  | 'ghostface'
-  | 'pennywise_balloon'
-  | 'jigsaw_billy'
-  | 'crt_tv'
-  | 'shining_twins'
-  | 'jason_mask'
-  | 'cursed_portrait'
+  | 'fantastic_mr_fox'
+  | 'megamind'
+  | 'eeaao_rocks'
+  | 'wild_robot'
+  | 'totoro'
+  | 'teen_beach'
+  | 'pitch_perfect'
   | 'secret_vhs';
 
 export interface EasterEggInfo {

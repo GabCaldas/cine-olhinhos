@@ -9,6 +9,7 @@ import {
   drawCaldasPixelSprite,
   drawPixelHeart,
 } from '../utils/pixelSprites';
+import { isHorrorMovie } from '../utils/horrorAiAnalyzer';
 import { soundEngine } from '../utils/soundEngine';
 import {
   ArrowLeft,
@@ -19,6 +20,7 @@ import {
   Eye,
   Flame,
   Footprints,
+  Heart,
   Skull,
   Trash2,
   Star,
@@ -506,8 +508,8 @@ export const ChosenHallScene: React.FC<ChosenHallSceneProps> = ({
           <div className="flex items-center gap-2.5">
             <Award className="w-4 h-4 text-amber-400" />
             <span className="font-pixel text-[9px] sm:text-[10px] text-amber-300 tracking-wider uppercase">
-              SALA II DA MANSÃO // SALÃO DOS FILMES ESCOLHIDOS ({chosenRecords.length}{' '}
-              {chosenRecords.length === 1 ? 'QUADRO' : 'QUADROS'})
+              SALA VIP DO CINEMA // FILMES JÁ ESCOLHIDOS ({chosenRecords.length}{' '}
+              {chosenRecords.length === 1 ? 'SESSÃO' : 'SESSÕES'})
             </span>
           </div>
 
@@ -519,7 +521,7 @@ export const ChosenHallScene: React.FC<ChosenHallSceneProps> = ({
             className="px-3 py-1 bg-[#260912] hover:bg-[#420d1d] border border-red-600/80 text-red-100 font-vt text-sm flex items-center gap-1.5 transition cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />
-            <span>Voltar ao Corredor de Escolha</span>
+            <span>Voltar ao Foyer do Cinema</span>
           </button>
         </div>
 
@@ -769,10 +771,17 @@ export const ChosenHallScene: React.FC<ChosenHallSceneProps> = ({
                 <div>
                   <div className="flex items-center justify-between text-[11px] font-vt text-amber-400 mb-1.5">
                     <span>SESSÃO #{rec.sessionNumber}</span>
-                    <span className="flex items-center gap-0.5 text-red-400">
-                      <Skull className="w-3 h-3" />
-                      {rec.movie.fearLevel}/5
-                    </span>
+                    {isHorrorMovie(rec.movie) ? (
+                      <span className="flex items-center gap-0.5 text-red-400">
+                        <Skull className="w-3 h-3" />
+                        {rec.movie.fearLevel}/5
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-0.5 text-amber-300">
+                        <Heart className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        {rec.movie.fearLevel}/5
+                      </span>
+                    )}
                   </div>
 
                   <div className="aspect-[2/3] w-full bg-black border border-amber-700/60 overflow-hidden mb-2 relative">

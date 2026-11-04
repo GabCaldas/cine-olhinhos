@@ -4,13 +4,19 @@ import {
   drawAninhaPixelSprite,
   drawCaldasPixelSprite,
   drawGhostButlerSprite,
-  drawGhostfaceSprite,
-  drawJasonMaskSprite,
-  drawJigsawBillySprite,
   drawMinionPixelSprite,
+  drawFantasticMrFoxSprite,
+  drawMegamindSprite,
+  drawEeaaoRocksSprite,
+  drawWildRobotSprite,
+  drawTotoroSprite,
+  drawTeenBeachSprite,
+  drawPitchPerfectSprite,
+  drawPixelHeart,
 } from '../utils/pixelSprites';
 import { EASTER_EGGS } from '../data/easterEggs';
 import { getMovieStreamingOffers } from '../utils/movieAutoFill';
+import { isHorrorMovie } from '../utils/horrorAiAnalyzer';
 import { soundEngine } from '../utils/soundEngine';
 import {
   Eye,
@@ -25,6 +31,8 @@ import {
   Bot,
   Trash2,
   Tv,
+  Film,
+  Clapperboard,
 } from 'lucide-react';
 
 interface MansionCorridorSceneProps {
@@ -83,16 +91,14 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
   );
 
   const worldWidth = Math.max(
-    900,
-    FIRST_PAINTING_X + visibleMovies.length * PAINTING_SPACING + 140
+    1180,
+    FIRST_PAINTING_X + visibleMovies.length * PAINTING_SPACING + 160
   );
 
   const coupleXRef = useRef<number>(FIRST_PAINTING_X);
   const targetXRef = useRef<number>(FIRST_PAINTING_X);
   const cameraXRef = useRef<number>(0);
   const isWalkingRef = useRef<boolean>(false);
-  const isScaredRef = useRef<boolean>(false);
-  const isLookingBackRef = useRef<boolean>(false);
   const keysRef = useRef<{ left: boolean; right: boolean }>({ left: false, right: false });
 
   const [activePaintingIdx, setActivePaintingIdx] = useState<number>(0);
@@ -111,7 +117,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
   const hoveredButlerRef = useRef<boolean>(false);
   hoveredButlerRef.current = hoveredButler;
 
-  // Walk once when Arthur guides the couple to a specific movie, then immediately clear target so movement never locks!
+  // Walk once when George guides the couple to a specific movie, then clear target so movement never locks
   useEffect(() => {
     if (!agentTargetMovieId) return;
     const idx = visibleMovies.findIndex((m) => m.id === agentTargetMovieId);
@@ -135,7 +141,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
     }
   }, [visibleMovies.length, activePaintingIdx]);
 
-  // Tracks which architectural secret is currently in its "triggered/animated" state (timestamp ms)
+  // Tracks which cinema Easter Egg is currently in its triggered/animated state
   const triggeredPropsRef = useRef<Record<string, number>>({});
 
   const [eventMessage, setEventMessage] = useState<{
@@ -160,80 +166,80 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
     });
   }, [visibleMovies]);
 
-  // Contextual Mansion Furniture & Architectural Secrets (Integrated naturally between the paintings!)
+  // 9 Interactive Cinema Easter Eggs placed along the Grand Cine Olhinhos Gallery!
   const getCorridorProps = useCallback((): CorridorProp[] => {
     return [
       {
-        id: 'jason_mask',
-        x: 72,
-        y: 56,
-        w: 24,
-        h: 32,
-        promptLabel: 'Panóplia de madeira na parede... [Clique para tocar]',
-      },
-      {
-        id: 'ghostface',
-        x: FIRST_PAINTING_X + 64,
-        y: 34,
-        w: 32,
-        h: 112,
-        promptLabel: 'Janela com cortina de veludo e telefone antigo... [Clique para espiar]',
-      },
-      {
         id: 'hidden_minion',
-        x: FIRST_PAINTING_X + PAINTING_SPACING * 1 + 66,
-        y: 120,
-        w: 26,
-        h: 28,
-        promptLabel: 'Portinhola solta no rodapé... algo brilha lá dentro [Clique para abrir]',
-      },
-      {
-        id: 'pennywise_balloon',
-        x: FIRST_PAINTING_X + PAINTING_SPACING * 2 + 66,
-        y: 96,
-        w: 26,
-        h: 56,
-        promptLabel: 'Ralo de ferro no assoalho com um fio vermelho... [Clique para olhar]',
-      },
-      {
-        id: 'jigsaw_billy',
-        x: FIRST_PAINTING_X + PAINTING_SPACING * 3 + 60,
-        y: 66,
-        w: 34,
-        h: 82,
-        promptLabel: 'Porta da despensa entreaberta com corrente... [Clique para empurrar]',
-      },
-      {
-        id: 'shining_twins',
-        x: FIRST_PAINTING_X + PAINTING_SPACING * 4 + 64,
-        y: 52,
+        x: 68,
+        y: 94,
         w: 28,
         h: 54,
-        promptLabel: 'Espelho veneziano embaçado na parede... [Clique para olhar o reflexo]',
+        promptLabel: 'Máquina de Pipoca Retrô... tem alguém lá dentro! [Clique para abrir]',
       },
       {
-        id: 'cursed_portrait',
-        x: FIRST_PAINTING_X + PAINTING_SPACING * 5 + 66,
-        y: 44,
-        w: 26,
-        h: 52,
-        promptLabel: 'Pintura a óleo antiga sobre o candelabro... [Clique para observar]',
-      },
-      {
-        id: 'crt_tv',
-        x: FIRST_PAINTING_X + PAINTING_SPACING * 6 + 60,
+        id: 'fantastic_mr_fox',
+        x: FIRST_PAINTING_X + 64,
         y: 102,
         w: 30,
         h: 46,
-        promptLabel: 'Televisão antiga sobre o aparador... [Clique para ligar]',
+        promptLabel: 'Adega de Cidra Dourada & Cauda de Raposa... [Clique para assobiar]',
+      },
+      {
+        id: 'megamind',
+        x: FIRST_PAINTING_X + PAINTING_SPACING * 1 + 64,
+        y: 80,
+        w: 30,
+        h: 68,
+        promptLabel: 'Gerador de Raios Azuis & Capa Negra... [Clique para APRESENTAÇÃO!]',
+      },
+      {
+        id: 'eeaao_rocks',
+        x: FIRST_PAINTING_X + PAINTING_SPACING * 2 + 62,
+        y: 106,
+        w: 32,
+        h: 42,
+        promptLabel: 'Pedestal do Multiverso: Duas Pedras no Deserto... [Clique para observar]',
+      },
+      {
+        id: 'wild_robot',
+        x: FIRST_PAINTING_X + PAINTING_SPACING * 3 + 62,
+        y: 96,
+        w: 32,
+        h: 52,
+        promptLabel: 'Jardim Iluminado: Unidade ROZZUM 7134 & Bico-Vivo... [Clique para ativar]',
+      },
+      {
+        id: 'totoro',
+        x: FIRST_PAINTING_X + PAINTING_SPACING * 4 + 62,
+        y: 86,
+        w: 32,
+        h: 62,
+        promptLabel: 'Ponto de Ônibus & Guarda-Chuva Vermelho... [Clique para chamar Totoro]',
+      },
+      {
+        id: 'teen_beach',
+        x: FIRST_PAINTING_X + PAINTING_SPACING * 5 + 62,
+        y: 96,
+        w: 32,
+        h: 52,
+        promptLabel: 'Prancha de Surf Anos 60 & Jaqueta Biker... [Clique para pegar onda]',
+      },
+      {
+        id: 'pitch_perfect',
+        x: FIRST_PAINTING_X + PAINTING_SPACING * 6 + 60,
+        y: 104,
+        w: 30,
+        h: 44,
+        promptLabel: 'Copo Azul & Microfone das Barden Bellas... [Clique para o Cup Song!]',
       },
       {
         id: 'secret_vhs',
         x: FIRST_PAINTING_X + PAINTING_SPACING * 6 + 102,
-        y: 58,
-        w: 26,
-        h: 90,
-        promptLabel: 'Relógio de pêndulo parado às 03:33... [Clique para abrir a base]',
+        y: 64,
+        w: 28,
+        h: 84,
+        promptLabel: 'Projetor Cinematográfico 35mm Dourado... [Clique para abrir a Bobina #00]',
       },
     ];
   }, []);
@@ -241,7 +247,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
   const handleTriggerProp = useCallback(
     (id: EasterEggId) => {
       const info = EASTER_EGGS[id];
-      triggeredPropsRef.current[id] = Date.now() + 6500; // Animate in-scene for 6.5 seconds
+      triggeredPropsRef.current[id] = Date.now() + 6500;
       onDiscoverEgg(id);
 
       setEventMessage({
@@ -252,15 +258,22 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
 
       if (id === 'hidden_minion') {
         soundEngine.playMinionSound();
-      } else if (id === 'crt_tv') {
-        soundEngine.playVhsStatic(0.32, 0.22);
-      } else if (id === 'ghostface') {
-        soundEngine.playPhoneRing();
-      } else if (id === 'jigsaw_billy' || id === 'secret_vhs') {
-        soundEngine.playDoorCreak();
-        soundEngine.playHeartbeat(0.65);
+      } else if (id === 'fantastic_mr_fox') {
+        soundEngine.playMrFoxWhistleClick();
+      } else if (id === 'megamind') {
+        soundEngine.playMegamindSynth();
+      } else if (id === 'eeaao_rocks') {
+        soundEngine.playEeaaoRocksChime();
+      } else if (id === 'wild_robot') {
+        soundEngine.playWildRobotChime();
+      } else if (id === 'totoro') {
+        soundEngine.playTotoroMelody();
+      } else if (id === 'teen_beach') {
+        soundEngine.playTeenBeachSurf();
+      } else if (id === 'pitch_perfect') {
+        soundEngine.playPitchPerfectCupSong();
       } else {
-        soundEngine.playHeartbeat(0.75);
+        soundEngine.playRomanticChime();
       }
     },
     [onDiscoverEgg]
@@ -278,7 +291,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
         const currentMovie = visibleMovies[activePaintingIdxRef.current];
         if (currentMovie) {
           e.preventDefault();
-          soundEngine.playVhsStatic(0.15, 0.15);
+          soundEngine.playRomanticChime();
           onSelectMovie(currentMovie);
         }
       }
@@ -303,34 +316,14 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
     const destX = FIRST_PAINTING_X + clampedIdx * PAINTING_SPACING;
     targetXRef.current = destX;
     setActivePaintingIdx(clampedIdx);
-    soundEngine.playHeartbeat(0.35);
+    soundEngine.playFootstep();
 
     if (openImmediately || Math.abs(coupleXRef.current - destX) < 28) {
       onSelectMovie(visibleMovies[clampedIdx]);
     }
   };
 
-  // Autonomous haunting events
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const r = Math.random();
-      if (r < 0.35) {
-        isLookingBackRef.current = true;
-        setTimeout(() => {
-          isLookingBackRef.current = false;
-        }, 2200);
-      } else if (r < 0.6 && !reducedMotion) {
-        isScaredRef.current = true;
-        soundEngine.playThunder();
-        setTimeout(() => {
-          isScaredRef.current = false;
-        }, 1400);
-      }
-    }, 8000);
-    return () => clearInterval(timer);
-  }, [reducedMotion]);
-
-  // Main 60FPS 2D Pixel Art Mansion Corridor Loop
+  // Main 60FPS 2D Pixel Art Grand Cinema Lobby & Gallery Loop
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -385,77 +378,82 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
       cameraXRef.current += (desiredCamX - cameraXRef.current) * 0.12;
       const camX = Math.round(cameraXRef.current);
 
-      const isThunder = isScaredRef.current && frame % 4 < 2;
-
       // ======================================================================
-      // 1. MANSION CORRIDOR WALLS, DAMASK WALLPAPER & WAINSCOTING
+      // 1. GRAND CINEMA ART DECO WALLS, VELVET DRAPES & WAINSCOTING
       // ======================================================================
-      ctx.fillStyle = isThunder ? '#2b0d16' : '#11060b';
+      ctx.fillStyle = '#0a0f1f';
       ctx.fillRect(0, 0, VIEW_W, 148);
 
-      ctx.fillStyle = '#190910';
-      for (let wx = -(camX % 24); wx < VIEW_W; wx += 24) {
-        ctx.fillRect(wx, 12, 10, 96);
-        ctx.fillStyle = '#220c16';
-        ctx.fillRect(wx + 4, 24, 2, 78);
-        ctx.fillStyle = '#190910';
+      // Royal Navy & Burgundy Cinema Wall Panels
+      ctx.fillStyle = '#11182d';
+      for (let wx = -(camX % 28); wx < VIEW_W; wx += 28) {
+        ctx.fillRect(wx + 2, 14, 22, 92);
+        ctx.fillStyle = '#19223d';
+        ctx.fillRect(wx + 6, 22, 14, 76);
+        ctx.fillStyle = '#11182d';
       }
 
-      ctx.fillStyle = '#231317';
+      // Gold Art Deco Ceiling Molding
+      ctx.fillStyle = '#450a14';
       ctx.fillRect(0, 0, VIEW_W, 11);
-      ctx.fillStyle = '#381e24';
+      ctx.fillStyle = '#d97706';
       ctx.fillRect(0, 11, VIEW_W, 2);
 
-      // Dark Mahogany Wainscoting
-      ctx.fillStyle = '#170e0c';
+      // Warm Walnut & Gold Cinema Wainscoting
+      ctx.fillStyle = '#1c1218';
       ctx.fillRect(0, 108, VIEW_W, 40);
-      ctx.fillStyle = '#291915';
-      ctx.fillRect(0, 108, VIEW_W, 3);
-      ctx.fillRect(0, 145, VIEW_W, 3);
+      ctx.fillStyle = '#b45309';
+      ctx.fillRect(0, 108, VIEW_W, 2);
+      ctx.fillRect(0, 146, VIEW_W, 2);
       for (let px = -(camX % 32); px < VIEW_W; px += 32) {
-        ctx.strokeStyle = '#241512';
+        ctx.strokeStyle = '#3b211e';
         ctx.lineWidth = 1;
         ctx.strokeRect(px + 4, 114, 24, 28);
       }
 
       // ======================================================================
-      // 2. HARDWOOD FLOOR & PLUSH BLOOD-RED VELVET CARPET RUNNER
+      // 2. POLISHED FLOOR & STAR-SPANGLED GRAND CINEMA CARPET RUNNER
       // ======================================================================
-      ctx.fillStyle = '#0d0808';
+      ctx.fillStyle = '#090c15';
       ctx.fillRect(0, 148, VIEW_W, VIEW_H - 148);
 
-      ctx.fillStyle = '#3b0810';
+      // Plush Crimson & Gold Cinema Runner
+      ctx.fillStyle = '#58111e';
       ctx.fillRect(0, 156, VIEW_W, 38);
-      ctx.fillStyle = '#b45309';
+      ctx.fillStyle = '#fbbf24';
       ctx.fillRect(0, 156, VIEW_W, 2);
       ctx.fillRect(0, 192, VIEW_W, 2);
-      ctx.fillStyle = '#540b17';
-      for (let cx = -(camX % 28); cx < VIEW_W; cx += 28) {
-        ctx.fillRect(cx + 6, 164, 14, 6);
-        ctx.fillRect(cx + 10, 172, 6, 12);
+      // Golden stars woven into the cinema carpet
+      ctx.fillStyle = '#d97706';
+      for (let cx = -(camX % 32); cx < VIEW_W; cx += 32) {
+        ctx.fillRect(cx + 12, 173, 4, 4);
+        ctx.fillRect(cx + 13, 172, 2, 6);
+        ctx.fillRect(cx + 11, 174, 6, 2);
       }
 
-      // Entrance Double Oak Door at Left End
-      const entranceSX = Math.round(24 - camX);
+      // Cinema Lobby Velvet Double Entrance Doors at Left End
+      const entranceSX = Math.round(22 - camX);
       if (entranceSX > -50 && entranceSX < VIEW_W) {
-        ctx.fillStyle = '#2e190f';
+        ctx.fillStyle = '#581c28';
         ctx.fillRect(entranceSX, 74, 34, 74);
-        ctx.strokeStyle = '#4a2919';
+        ctx.strokeStyle = '#fbbf24';
         ctx.strokeRect(entranceSX, 74, 34, 74);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(entranceSX + 5, 82, 10, 22);
+        ctx.fillRect(entranceSX + 19, 82, 10, 22);
       }
 
       // ======================================================================
-      // 2.5 ARTHUR, O CURADOR FANTASMA DA MANSÃO (AGENTE IA EM PIXEL ART)
+      // 2.5 REVIVED GEORGE: O CONCIERGE & CURADOR CINÉFILO (EM PIXEL ART)
       // ======================================================================
       const butlerWorldX = 112;
       const butlerSX = Math.round(butlerWorldX - camX);
       if (butlerSX > -40 && butlerSX < VIEW_W + 40) {
-        // Antique wooden curator lectern / pedestal beside Arthur
-        ctx.fillStyle = '#24140e';
+        // Golden Cinema Concierge Podium beside George
+        ctx.fillStyle = '#450a14';
         ctx.fillRect(butlerSX - 10, 134, 8, 20);
-        ctx.fillStyle = '#b45309';
+        ctx.fillStyle = '#fbbf24';
         ctx.fillRect(butlerSX - 12, 132, 12, 3);
-        // Open guestbook on lectern
         ctx.fillStyle = '#fef3c7';
         ctx.fillRect(butlerSX - 11, 130, 10, 2);
 
@@ -469,7 +467,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
       }
 
       // ======================================================================
-      // 3. CONTEXTUAL MANSION ARCHITECTURE & INTERACTIVE HORROR SECRETS
+      // 3. THE 9 INTERACTIVE CINEMA EASTER EGGS IN THE LOBBY
       // ======================================================================
       const props = getCorridorProps();
       props.forEach((prop) => {
@@ -478,294 +476,152 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
 
         const isHovered = hoveredPropRef.current === prop.id;
         const isActive = (triggeredPropsRef.current[prop.id] || 0) > now;
-        const isNear = Math.abs(coupleXRef.current - (prop.x + prop.w / 2)) < 42;
         const showEffect = isActive || isHovered;
 
-        if (prop.id === 'jason_mask') {
-          // 1. Antique Wooden Wall Trophy Plaque (Panóplia de Parede)
-          ctx.fillStyle = '#2b170e';
-          ctx.fillRect(sx + 2, prop.y + 2, 20, 24);
-          ctx.strokeStyle = isHovered ? '#d97706' : '#4a2919';
-          ctx.strokeRect(sx + 2, prop.y + 2, 20, 24);
-          // Crossed machete handle & blade behind the plaque
-          ctx.fillStyle = showEffect ? '#e2e8f0' : '#64748b';
-          ctx.fillRect(sx - 1, prop.y + 22, 26, 2);
-          drawJasonMaskSprite(ctx, sx + 6, prop.y + 7, showEffect);
-        } else if (prop.id === 'ghostface') {
-          // 2. Tall Gothic Window with Heavy Velvet Curtains & Rotary Phone Table
-          // Window frame & night sky outside
-          ctx.fillStyle = '#070b14';
-          ctx.fillRect(sx + 3, prop.y + 2, 26, 68);
-          ctx.strokeStyle = '#291915';
-          ctx.strokeRect(sx + 3, prop.y + 2, 26, 68);
-          // Window muntins
-          ctx.fillStyle = '#1c1210';
-          ctx.fillRect(sx + 15, prop.y + 2, 2, 68);
-          ctx.fillRect(sx + 3, prop.y + 34, 26, 2);
-
-          // If triggered or hovered, the right curtain opens and the figure peeks inside!
-          if (showEffect) {
-            drawGhostfaceSprite(ctx, sx + 11, prop.y + 28, true);
-          } else if (isNear && frame % 160 > 125) {
-            // Subtle pale mask glimpse in the dark glass when walking past
-            ctx.fillStyle = 'rgba(241, 245, 249, 0.25)';
-            ctx.fillRect(sx + 14, prop.y + 38, 4, 6);
-          }
-
-          // Heavy Burgundy Velvet Drapes on left & right of the window
-          const curtainOpenOffset = showEffect ? 7 : 0;
-          ctx.fillStyle = '#450a0a';
-          ctx.fillRect(sx + 1, prop.y, 9, 74); // Left drape
-          ctx.fillRect(sx + 18 + curtainOpenOffset, prop.y, 11 - Math.min(6, curtainOpenOffset), 74); // Right drape
-          ctx.fillStyle = '#7f1d1d';
-          ctx.fillRect(sx + 3, prop.y + 2, 2, 70);
-          // Brass curtain rod
-          ctx.fillStyle = '#b45309';
-          ctx.fillRect(sx - 1, prop.y - 2, 34, 2);
-
-          // Small side table with vintage rotary phone below window
-          ctx.fillStyle = '#24140e';
-          ctx.fillRect(sx + 4, prop.y + 84, 24, 28);
-          ctx.fillStyle = '#09090b';
-          ctx.fillRect(sx + 10, prop.y + 78, 12, 6); // Phone base
-          const phoneShake = showEffect && frame % 4 < 2 ? -1 : 0;
-          ctx.fillStyle = showEffect ? '#ef4444' : '#27272a';
-          ctx.fillRect(sx + 8, prop.y + 76 + phoneShake, 16, 2); // Receiver
-        } else if (prop.id === 'hidden_minion') {
-          // 3. Recessed Wooden Baseboard Service Hatch (Alçapão no Rodapé)
-          ctx.fillStyle = '#070406';
-          ctx.fillRect(sx + 3, prop.y + 4, 20, 22); // Dark wall niche cavity
-          ctx.strokeStyle = '#3b231a';
-          ctx.strokeRect(sx + 3, prop.y + 4, 20, 22);
+        if (prop.id === 'hidden_minion') {
+          // 1. Vintage Red & Gold Cinema Popcorn Machine Cart (with Minion inside!)
+          const pxCart = sx + 2;
+          const pyCart = prop.y;
+          // Lower Red & Gold Cart Base
+          ctx.fillStyle = '#991b1b';
+          ctx.fillRect(pxCart, pyCart + 28, 24, 24);
+          ctx.strokeStyle = '#fbbf24';
+          ctx.strokeRect(pxCart, pyCart + 28, 24, 24);
+          // Glass Kettle Chamber
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+          ctx.fillRect(pxCart + 2, pyCart + 6, 20, 22);
+          ctx.strokeStyle = '#fbbf24';
+          ctx.strokeRect(pxCart + 2, pyCart + 6, 20, 22);
+          // Red & White Striped Canopy Roof
+          ctx.fillStyle = '#dc2626';
+          ctx.fillRect(pxCart, pyCart + 2, 24, 4);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(pxCart + 5, pyCart + 2, 4, 4);
+          ctx.fillRect(pxCart + 15, pyCart + 2, 4, 4);
+          // Heap of golden buttered popcorn at the bottom of the glass
+          ctx.fillStyle = '#fde047';
+          ctx.fillRect(pxCart + 3, pyCart + 22, 18, 5);
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(pxCart + 5, pyCart + 20, 14, 3);
 
           if (showEffect) {
-            // Hatch swung open to the side + Minion popping out with banana!
-            ctx.fillStyle = '#241512';
-            ctx.fillRect(sx + 23, prop.y + 4, 6, 22);
-            drawMinionPixelSprite(ctx, sx + 8, prop.y + 7, frame, true);
+            // Minion pops right out of the popcorn kettle holding a banana!
+            drawMinionPixelSprite(ctx, pxCart + 7, pyCart + 6, frame, true);
           } else {
-            // Wooden panel mostly closed, leaving a 4px dark gap where two silver goggles peek out!
-            ctx.fillStyle = '#1f120f';
-            ctx.fillRect(sx + 4, prop.y + 11, 18, 14);
-            // Tiny goggle eyes glinting in the dark crack
+            // Two silver goggle eyes peeking out from the popcorn heap!
             ctx.fillStyle = '#94a3b8';
-            ctx.fillRect(sx + 9, prop.y + 6, 3, 3);
-            ctx.fillRect(sx + 13, prop.y + 6, 3, 3);
-            ctx.fillStyle = '#facc15';
-            ctx.fillRect(sx + 10, prop.y + 7, 1, 1);
-            ctx.fillRect(sx + 14, prop.y + 7, 1, 1);
+            ctx.fillRect(pxCart + 8, pyCart + 17, 3, 3);
+            ctx.fillRect(pxCart + 13, pyCart + 17, 3, 3);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(pxCart + 9, pyCart + 18, 1, 1);
+            ctx.fillRect(pxCart + 14, pyCart + 18, 1, 1);
           }
-        } else if (prop.id === 'pennywise_balloon') {
-          // 4. Iron Floor Drainage Grate built into the floorboards + Red String
-          const grateY = 146;
-          ctx.fillStyle = '#040305';
-          ctx.fillRect(sx + 3, grateY, 20, 7);
-          ctx.fillStyle = '#27272a';
-          for (let gx = 5; gx < 21; gx += 4) {
-            ctx.fillRect(sx + gx, grateY, 1, 7);
-          }
+        } else if (prop.id === 'fantastic_mr_fox') {
+          // 2. Fantastic Mr. Fox & Golden Apple Cider Display Crate
+          ctx.fillStyle = '#451a03';
+          ctx.fillRect(sx + 2, prop.y + 26, 26, 20);
+          ctx.strokeStyle = isHovered ? '#fbbf24' : '#78350f';
+          ctx.strokeRect(sx + 2, prop.y + 26, 26, 20);
+          // Sparkling Apple Cider bottles on crate
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(sx + 6, prop.y + 20, 3, 6);
+          ctx.fillRect(sx + 11, prop.y + 20, 3, 6);
+          ctx.fillStyle = '#dc2626';
+          ctx.fillRect(sx + 7, prop.y + 18, 1, 2);
+          ctx.fillRect(sx + 12, prop.y + 18, 1, 2);
 
-          // Glowing yellow eyes inside the dark grate when near, hovered, or active
-          if (showEffect || (isNear && frame % 90 > 45)) {
-            ctx.fillStyle = '#facc15';
-            ctx.fillRect(sx + 9, grateY + 3, 2, 2);
-            ctx.fillRect(sx + 15, grateY + 3, 2, 2);
-          }
-
-          if (showEffect) {
-            // The red balloon rises up from the grate into the corridor!
-            const floatY = Math.round(Math.sin(frame * 0.08) * 3);
-            const by = prop.y + 6 + floatY;
-            ctx.fillStyle = '#94a3b8';
-            ctx.fillRect(sx + 13, by + 11, 1, grateY - (by + 11));
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(sx + 9, by + 1, 9, 9);
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(sx + 10, by, 7, 11);
-            ctx.fillStyle = '#fecaca';
-            ctx.fillRect(sx + 11, by + 2, 2, 2);
-          } else {
-            // Subtle clue: red string tied to the grate with a deflated/low knot
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(sx + 12, grateY - 5, 2, 5);
-            ctx.fillRect(sx + 11, grateY - 7, 4, 2);
-          }
-        } else if (prop.id === 'jigsaw_billy') {
-          // 5. Chained Ajar Pantry/Service Door built into the corridor wall
-          const doorX = sx + 3;
-          const doorY = prop.y + 6;
-          const doorW = 28;
-          const doorH = 76;
-
-          // Pitch-black interior room behind the door
-          ctx.fillStyle = '#040204';
-          ctx.fillRect(doorX, doorY, doorW, doorH);
-
-          // Red light spilling onto the floorboards from inside the room
-          ctx.fillStyle = showEffect ? 'rgba(220, 38, 38, 0.35)' : 'rgba(185, 28, 28, 0.16)';
-          ctx.fillRect(doorX, doorY + doorH - 4, doorW, 8);
+          drawFantasticMrFoxSprite(ctx, sx + 12, prop.y + 6, frame, showEffect);
+        } else if (prop.id === 'megamind') {
+          // 3. Megamind & His Blue Lightning Presentation Stage
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(sx + 3, prop.y + 10, 24, 56);
+          ctx.strokeStyle = showEffect ? '#38bdf8' : '#1e3a8a';
+          ctx.strokeRect(sx + 3, prop.y + 10, 24, 56);
 
           if (showEffect) {
-            // Door swung open wide, revealing the tricycle puppet rolling out of the dark room!
-            ctx.fillStyle = '#24140e';
-            ctx.fillRect(doorX, doorY, 8, doorH); // Open door leaf
-            drawJigsawBillySprite(ctx, doorX + 11, doorY + 52, true);
-          } else {
-            // Heavy oak door almost closed (only a 4px dark vertical crack on the right)
-            ctx.fillStyle = '#24140e';
-            ctx.fillRect(doorX, doorY, doorW - 4, doorH);
-            ctx.strokeStyle = '#3b2116';
-            ctx.strokeRect(doorX + 3, doorY + 5, doorW - 10, 28);
-            ctx.strokeRect(doorX + 3, doorY + 38, doorW - 10, 32);
-            // Iron chain across the door gap
-            ctx.fillStyle = '#52525b';
-            ctx.fillRect(doorX + doorW - 9, doorY + 36, 9, 2);
-            // Two tiny red eyes gleaming in the 4px crack!
-            if (frame % 110 > 60) {
-              ctx.fillStyle = '#ef4444';
-              ctx.fillRect(doorX + doorW - 3, doorY + 55, 1, 1);
-              ctx.fillRect(doorX + doorW - 1, doorY + 55, 1, 1);
-            }
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.22)';
+            ctx.fillRect(sx - 4, prop.y, 38, 68);
           }
-          // Door frame molding
-          ctx.strokeStyle = '#3d2217';
-          ctx.strokeRect(doorX, doorY, doorW, doorH);
-        } else if (prop.id === 'shining_twins') {
-          // 6. Ornate Gilded Venetian Wall Mirror
-          ctx.fillStyle = '#855d33';
-          ctx.fillRect(sx + 2, prop.y + 2, 24, 48);
-          ctx.fillStyle = '#b45309';
-          ctx.fillRect(sx + 4, prop.y, 20, 2);
-          // Mirror glass surface
-          ctx.fillStyle = showEffect ? '#131c2e' : '#0f1420';
-          ctx.fillRect(sx + 5, prop.y + 5, 18, 42);
-
-          if (showEffect || (isNear && frame % 180 > 140)) {
-            // The two identical figures in pale blue dresses appear inside the mirror reflection!
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(sx + 8, prop.y + 25, 5, 14);
-            ctx.fillRect(sx + 15, prop.y + 25, 5, 14);
-            ctx.fillStyle = '#e2e8f0';
-            ctx.fillRect(sx + 9, prop.y + 20, 3, 5);
-            ctx.fillRect(sx + 16, prop.y + 20, 3, 5);
-            // Joined hands
-            ctx.fillRect(sx + 13, prop.y + 29, 2, 2);
-          } else {
-            // Normal mirror reflection streaks
-            ctx.fillStyle = 'rgba(255,255,255,0.07)';
-            ctx.fillRect(sx + 8, prop.y + 9, 2, 30);
-            ctx.fillRect(sx + 12, prop.y + 14, 1, 22);
-          }
-        } else if (prop.id === 'cursed_portrait') {
-          // 7. Antique Oil Portrait above a Double Candle Sconce
-          ctx.save();
-          if (showEffect) {
-            // Frame tilts crookedly when triggered!
-            ctx.translate(sx + 13, prop.y + 20);
-            ctx.rotate(0.09);
-            ctx.translate(-(sx + 13), -(prop.y + 20));
-          }
-          ctx.fillStyle = '#4a3219';
-          ctx.fillRect(sx + 3, prop.y + 2, 20, 32);
-          ctx.fillStyle = '#09070a';
-          ctx.fillRect(sx + 5, prop.y + 4, 16, 28);
-
-          if (showEffect) {
-            // Veiled pale figure with glowing yellow eyes staring out of the canvas
-            ctx.fillStyle = '#020204';
-            ctx.fillRect(sx + 7, prop.y + 7, 12, 24);
-            ctx.fillStyle = '#e2e8f0';
-            ctx.fillRect(sx + 10, prop.y + 10, 6, 9);
-            ctx.fillStyle = '#facc15';
-            ctx.fillRect(sx + 11, prop.y + 13, 1, 2);
-            ctx.fillRect(sx + 14, prop.y + 13, 1, 2);
-          } else {
-            // Somber 19th-century bust silhouette
-            ctx.fillStyle = '#27272a';
-            ctx.fillRect(sx + 10, prop.y + 11, 6, 7);
-            ctx.fillRect(sx + 8, prop.y + 18, 10, 12);
-          }
-          ctx.restore();
-
-          // Candle sconce underneath the portrait
-          ctx.fillStyle = '#78350f';
-          ctx.fillRect(sx + 9, prop.y + 39, 8, 3);
-          ctx.fillStyle = showEffect ? '#ef4444' : '#f59e0b';
-          ctx.fillRect(sx + 10, prop.y + 36, 2, 3);
-          ctx.fillRect(sx + 14, prop.y + 36, 2, 3);
-        } else if (prop.id === 'crt_tv') {
-          // 8. Carved Sideboard Cabinet with Vintage CRT Television
-          ctx.fillStyle = '#24150e';
-          ctx.fillRect(sx + 2, prop.y + 20, 26, 26);
-          ctx.strokeStyle = '#3b2217';
-          ctx.strokeRect(sx + 4, prop.y + 23, 22, 20);
-          // Vintage CRT TV Box & Antenna
-          ctx.fillStyle = '#18181b';
-          ctx.fillRect(sx + 4, prop.y + 4, 22, 16);
-          ctx.fillStyle = '#52525b';
-          ctx.fillRect(sx + 11, prop.y, 1, 4);
-          ctx.fillRect(sx + 18, prop.y, 1, 4);
-
-          if (showEffect) {
-            // Static & the cursed stone well ring + dark hair spilling over the screen frame!
-            ctx.fillStyle = '#090d16';
-            ctx.fillRect(sx + 6, prop.y + 6, 16, 12);
-            ctx.strokeStyle = '#f8fafc';
-            ctx.strokeRect(sx + 11, prop.y + 8, 6, 6);
-            ctx.fillStyle = '#020204';
-            ctx.fillRect(sx + 12, prop.y + 12, 4, 12);
-            // Water puddle on the floor
-            ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
-            ctx.fillRect(sx + 6, prop.y + 45, 16, 2);
-          } else {
-            // Dormant dark glass tube with tiny red standby LED
-            ctx.fillStyle = '#090a0f';
-            ctx.fillRect(sx + 6, prop.y + 6, 16, 12);
-            ctx.fillStyle = frame % 60 < 30 ? '#ef4444' : '#450a0a';
-            ctx.fillRect(sx + 23, prop.y + 16, 1, 1);
-          }
+          drawMegamindSprite(ctx, sx + 9, prop.y + 26, frame, showEffect);
+        } else if (prop.id === 'eeaao_rocks') {
+          // 4. Everything Everywhere All at Once — The Two Rocks on a Museum Pedestal
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(sx + 4, prop.y + 22, 24, 20);
+          ctx.fillStyle = '#fbbf24';
+          ctx.fillRect(sx + 2, prop.y + 20, 28, 2);
+          drawEeaaoRocksSprite(ctx, sx + 2, prop.y + 2, frame, showEffect);
+        } else if (prop.id === 'wild_robot') {
+          // 5. The Wild Robot (Roz & Bico-Vivo) in an Illuminated Planter Box
+          ctx.fillStyle = '#14532d';
+          ctx.fillRect(sx + 2, prop.y + 34, 28, 16);
+          ctx.fillStyle = '#22c55e';
+          ctx.fillRect(sx + 4, prop.y + 31, 24, 4);
+          // Wildflowers
+          ctx.fillStyle = '#facc15';
+          ctx.fillRect(sx + 6, prop.y + 29, 2, 2);
+          ctx.fillStyle = '#f472b6';
+          ctx.fillRect(sx + 22, prop.y + 29, 2, 2);
+          drawWildRobotSprite(ctx, sx + 8, prop.y + 13, frame, showEffect);
+        } else if (prop.id === 'totoro') {
+          // 6. My Neighbor Totoro — Retro Japanese Bus Stop Sign & Totoro
+          // Bus stop pole & blue/white round sign
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillRect(sx + 4, prop.y + 16, 1, 44);
+          ctx.fillStyle = '#0284c7';
+          ctx.fillRect(sx + 1, prop.y + 8, 7, 7);
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(sx + 2, prop.y + 10, 5, 3);
+          drawTotoroSprite(ctx, sx + 10, prop.y + 26, frame, showEffect);
+        } else if (prop.id === 'teen_beach') {
+          // 7. Teen Beach Movie — 60s Surfboard & Biker Jacket Display
+          drawTeenBeachSprite(ctx, sx + 3, prop.y + 14, frame, showEffect);
+        } else if (prop.id === 'pitch_perfect') {
+          // 8. Pitch Perfect — Cup Song Counter & Barden Bellas Mic
+          drawPitchPerfectSprite(ctx, sx + 2, prop.y + 14, frame, showEffect);
         } else if (prop.id === 'secret_vhs') {
-          // 9. Tall Grandfather Clock stopped at 03:33 with secret base compartment
+          // 9. Vintage 35mm Golden Film Projector holding Secret Reel #00!
           const gx = sx + 4;
-          const gy = prop.y;
-          ctx.fillStyle = '#26140c';
-          ctx.fillRect(gx, gy, 18, 90);
-          ctx.strokeStyle = '#452617';
-          ctx.strokeRect(gx, gy, 18, 90);
+          const gy = prop.y + 8;
+          // Projector Pedestal Stand
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(gx + 2, gy + 30, 16, 46);
+          ctx.strokeStyle = '#fbbf24';
+          ctx.strokeRect(gx + 2, gy + 30, 16, 46);
 
-          // Clock face at top
-          ctx.fillStyle = '#d6d3d1';
-          ctx.fillRect(gx + 3, gy + 5, 12, 12);
-          ctx.fillStyle = '#09090b';
-          ctx.fillRect(gx + 8, gy + 7, 1, 4);
-          ctx.fillRect(gx + 8, gy + 11, 4, 1);
+          // Projector Body & Lens
+          ctx.fillStyle = '#0f172a';
+          ctx.fillRect(gx + 3, gy + 14, 14, 16);
+          ctx.fillStyle = '#d97706';
+          ctx.fillRect(gx + 17, gy + 18, 4, 6); // Brass lens
 
-          // Lower pendulum compartment
-          ctx.fillStyle = '#090507';
-          ctx.fillRect(gx + 3, gy + 24, 12, 56);
+          // Two 35mm Film Reels on top of projector
+          const reelSpin = showEffect || discoveredEggs.includes('secret_vhs');
+          ctx.fillStyle = reelSpin ? '#fbbf24' : '#64748b';
+          ctx.fillRect(gx + 1, gy + 2, 8, 8);
+          ctx.fillRect(gx + 11, gy + 4, 8, 8);
+          ctx.fillStyle = '#090d16';
+          ctx.fillRect(gx + 4, gy + 5, 2, 2);
+          ctx.fillRect(gx + 14, gy + 7, 2, 2);
 
-          if (showEffect || discoveredEggs.includes('secret_vhs')) {
-            // Open compartment revealing the Brass Pendulum & Hidden VHS #00!
-            ctx.fillStyle = '#d97706';
-            ctx.fillRect(gx + 8, gy + 26, 2, 26);
-            ctx.fillRect(gx + 6, gy + 50, 6, 6);
-            // VHS Tape #00 resting on the bottom shelf inside the clock
-            ctx.fillStyle = '#09090b';
-            ctx.fillRect(gx + 4, gy + 68, 10, 6);
-            ctx.fillStyle = discoveredEggs.includes('secret_vhs') ? '#22c55e' : '#ef4444';
-            ctx.fillRect(gx + 5, gy + 70, 8, 2);
+          // Projector light beam & Secret Golden Reel #00 compartment
+          if (reelSpin) {
+            ctx.fillStyle = 'rgba(253, 224, 71, 0.22)';
+            ctx.fillRect(gx + 21, gy + 15, 20, 12);
+            // Open compartment revealing Golden Reel #00 & Heart
+            ctx.fillStyle = '#090d16';
+            ctx.fillRect(gx + 5, gy + 38, 10, 28);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillRect(gx + 6, gy + 48, 8, 8);
+            drawPixelHeart(ctx, gx + 10, gy + 42, '#ef4444');
           } else {
-            // Closed wooden pendulum door with glowing red keyhole
-            ctx.fillStyle = '#1e100a';
-            ctx.fillRect(gx + 3, gy + 24, 12, 56);
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(gx + 12, gy + 52, 2, 2);
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(gx + 13, gy + 50, 2, 2);
           }
         }
       });
 
       // ======================================================================
-      // 4. THE MOVIE PAINTINGS (QUADROS DOS FILMES NA PAREDE DA MANSÃO)
+      // 4. THE MOVIE SHOWCASE FRAMES ("EM CARTAZ" NA GALERIA DO CINEMA)
       // ======================================================================
       visibleMovies.forEach((movie, idx) => {
         const worldFrameX = FIRST_PAINTING_X + idx * PAINTING_SPACING;
@@ -776,6 +632,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
         const isCurrent = idx === activePaintingIdxRef.current;
         const isHovered = idx === hoveredPaintingIdxRef.current;
         const isHighlighted = isCurrent || isHovered;
+        const movieIsHorror = isHorrorMovie(movie);
 
         const fw = 54;
         const fh = 74;
@@ -789,37 +646,47 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
             4,
             screenX,
             fy + 38,
-            56
+            58
           );
-          spotGrad.addColorStop(0, 'rgba(245, 158, 11, 0.34)');
-          spotGrad.addColorStop(0.55, 'rgba(185, 28, 28, 0.14)');
+          spotGrad.addColorStop(
+            0,
+            movieIsHorror ? 'rgba(239, 68, 68, 0.34)' : 'rgba(251, 191, 36, 0.38)'
+          );
+          spotGrad.addColorStop(
+            0.55,
+            movieIsHorror ? 'rgba(185, 28, 28, 0.14)' : 'rgba(56, 189, 248, 0.14)'
+          );
           spotGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
           ctx.fillStyle = spotGrad;
           ctx.fillRect(screenX - 58, fy - 12, 116, 116);
         }
 
-        ctx.fillStyle = '#78350f';
-        ctx.fillRect(screenX - 10, fy - 7, 20, 3);
-        ctx.fillStyle = isHighlighted ? '#fde68a' : '#d97706';
-        ctx.fillRect(screenX - 7, fy - 4, 14, 2);
+        // Brass Cinema Spotlight Bar above Poster
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(screenX - 12, fy - 7, 24, 3);
+        ctx.fillStyle = isHighlighted ? '#fef08a' : '#fbbf24';
+        ctx.fillRect(screenX - 8, fy - 4, 16, 2);
 
+        // Drop shadow
         ctx.fillStyle = 'rgba(0, 0, 0, 0.78)';
         ctx.fillRect(fx + 3, fy + 3, fw, fh);
 
+        // Outer Cinema Frame
         ctx.fillStyle = movie.isSecret
-          ? '#991b1b'
+          ? '#e11d48'
           : isHighlighted
-          ? '#d97706'
-          : '#5c4023';
+          ? '#fbbf24'
+          : '#b45309';
         ctx.fillRect(fx, fy, fw, fh);
 
-        ctx.fillStyle = isHighlighted ? '#fef08a' : '#855d33';
+        // Corner gold studs
+        ctx.fillStyle = '#fef08a';
         ctx.fillRect(fx, fy, 4, 4);
         ctx.fillRect(fx + fw - 4, fy, 4, 4);
         ctx.fillRect(fx, fy + fh - 4, 4, 4);
         ctx.fillRect(fx + fw - 4, fy + fh - 4, 4, 4);
 
-        ctx.fillStyle = '#090508';
+        ctx.fillStyle = '#090d16';
         ctx.fillRect(fx + 3, fy + 3, fw - 6, fh - 6);
 
         const ix = fx + 5;
@@ -833,55 +700,59 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
 
         if (cachedImg && cachedImg.complete && cachedImg.naturalWidth > 0) {
           ctx.drawImage(cachedImg, ix, iy, iw, ih);
-          ctx.fillStyle = isHighlighted
-            ? 'rgba(10, 4, 8, 0.12)'
-            : 'rgba(10, 4, 8, 0.38)';
-          ctx.fillRect(ix, iy, iw, ih);
+          if (!isHighlighted) {
+            ctx.fillStyle = 'rgba(9, 13, 22, 0.22)';
+            ctx.fillRect(ix, iy, iw, ih);
+          }
         } else {
-          ctx.fillStyle = '#170810';
+          ctx.fillStyle = '#1e293b';
           ctx.fillRect(ix, iy, iw, ih);
-          ctx.fillStyle = isHighlighted ? '#dc2626' : '#7f1d1d';
+          ctx.fillStyle = '#fbbf24';
           ctx.fillRect(ix + 12, iy + 14, iw - 24, ih - 28);
         }
 
-        // Brass Number Plaque below the Painting
-        ctx.fillStyle = isHighlighted ? '#450a0a' : '#1c1210';
+        // Brass Plaque below the Poster Frame
+        ctx.fillStyle = isHighlighted ? '#451a03' : '#0f172a';
         ctx.fillRect(screenX - 18, fy + fh + 3, 36, 8);
-        ctx.strokeStyle = isHighlighted ? '#ef4444' : '#5c4023';
+        ctx.strokeStyle = isHighlighted ? '#fbbf24' : '#78350f';
         ctx.strokeRect(screenX - 18, fy + fh + 3, 36, 8);
 
         for (let s = 0; s < 5; s++) {
-          ctx.fillStyle = s < movie.fearLevel ? '#ef4444' : '#27272a';
+          ctx.fillStyle =
+            s < movie.fearLevel
+              ? movieIsHorror
+                ? '#ef4444'
+                : '#fbbf24'
+              : '#334155';
           ctx.fillRect(screenX - 10 + s * 4, fy + fh + 6, 2, 2);
         }
 
-        // Flickering Wall Sconces
+        // Warm Art Deco Wall Sconces between posters
         const sconceX = screenX - Math.floor(PAINTING_SPACING / 2);
         if (sconceX > 10 && sconceX < VIEW_W - 10) {
-          ctx.fillStyle = '#442b1d';
-          ctx.fillRect(sconceX - 2, 58, 4, 10);
-          const flameFlicker = (frame + idx * 17) % 9 !== 0;
-          ctx.fillStyle = flameFlicker ? '#f59e0b' : '#dc2626';
-          ctx.fillRect(sconceX - 1, 54, 2, 4);
+          ctx.fillStyle = '#b45309';
+          ctx.fillRect(sconceX - 2, 56, 4, 10);
+          ctx.fillStyle = '#fef08a';
+          ctx.fillRect(sconceX - 3, 52, 6, 4);
         }
       });
 
       // ======================================================================
-      // 5. PIXEL ART COUPLE — ANINHA & CALDAS WALKING TOGETHER IN THE GALLERY
+      // 5. PIXEL ART COUPLE — ANINHA & CALDAS WALKING TOGETHER IN THE CINEMA
       // ======================================================================
       const coupleScreenX = Math.round(coupleXRef.current - camX);
       const coupleScreenY = 176;
 
       const lanternGrad = ctx.createRadialGradient(
-        coupleScreenX + 8,
+        coupleScreenX + 4,
         coupleScreenY - 18,
         4,
         coupleScreenX,
         coupleScreenY - 18,
-        64
+        62
       );
-      lanternGrad.addColorStop(0, 'rgba(245, 158, 11, 0.32)');
-      lanternGrad.addColorStop(0.55, 'rgba(185, 28, 28, 0.12)');
+      lanternGrad.addColorStop(0, 'rgba(251, 191, 36, 0.30)');
+      lanternGrad.addColorStop(0.55, 'rgba(220, 38, 38, 0.10)');
       lanternGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = lanternGrad;
       ctx.fillRect(coupleScreenX - 64, coupleScreenY - 80, 128, 100);
@@ -890,8 +761,8 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
         frame,
         isWalking: isWalkingRef.current,
         facing: 'right' as const,
-        isScared: isScaredRef.current,
-        isLookingBack: isLookingBackRef.current,
+        isScared: false,
+        isLookingBack: false,
         isHoldingHands: true,
         blink: frame % 105 > 100,
       };
@@ -912,13 +783,8 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
         coupleConfig.lanternColor
       );
 
-      // Dust motes in the lantern light
-      ctx.fillStyle = 'rgba(254, 243, 199, 0.18)';
-      for (let m = 0; m < 18; m++) {
-        const mx = (m * 67 + Math.floor(frame * 0.15)) % VIEW_W;
-        const my = 25 + ((m * 31 + Math.floor(Math.sin(frame * 0.03 + m) * 6)) % 140);
-        ctx.fillRect(mx, my, 1, 1);
-      }
+      const heartBob = Math.sin(frame * 0.08) * 1.5;
+      drawPixelHeart(ctx, coupleScreenX - 1, coupleScreenY - 39 + heartBob, '#dc2626');
 
       animId = requestAnimationFrame(render);
     };
@@ -938,7 +804,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const { viewY, worldX } = getWorldCoords(e);
 
-    // Check if hovering over Arthur (The Ghost Butler AI Agent at x = 112)
+    // Check if hovering over George (at x = 112)
     const isOverButler =
       worldX >= 100 && worldX <= 132 && viewY >= 112 && viewY <= 160;
     setHoveredButler(isOverButler);
@@ -976,7 +842,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const { viewY, worldX } = getWorldCoords(e);
 
-    // 0. Check if clicked on Arthur (The Ghost Butler AI Agent at x = 112)
+    // 0. Check if clicked on George (at x = 112)
     if (worldX >= 100 && worldX <= 132 && viewY >= 112 && viewY <= 160) {
       targetXRef.current = 128;
       soundEngine.playRomanticChime();
@@ -995,7 +861,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
       }
     }
 
-    // 2. Check if clicked on an architectural secret / interactive mansion object
+    // 2. Check if clicked on an interactive Cinema Easter Egg
     const hitProp = getCorridorProps().find(
       (p) =>
         worldX >= p.x &&
@@ -1014,46 +880,47 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
   };
 
   const currentMovie = visibleMovies[activePaintingIdx] || visibleMovies[0];
+  const currentIsHorror = currentMovie ? isHorrorMovie(currentMovie) : false;
 
   return (
     <div className="w-full max-w-6xl mx-auto px-2 sm:px-6 pt-2 pb-10 select-none space-y-4">
-      <div className="relative border-2 border-[#3d0e18] bg-[#060307] shadow-[0_0_70px_rgba(0,0,0,0.95),0_0_30px_rgba(153,27,27,0.28)] overflow-hidden">
-        {/* Top Corridor Guidance Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 bg-[#0d060b] border-b border-[#330d16] text-xs">
+      <div className="relative border-2 border-amber-600/80 bg-[#070b16] shadow-[0_0_70px_rgba(0,0,0,0.95),0_0_30px_rgba(245,158,11,0.22)] overflow-hidden">
+        {/* Top Cinema Lobby Guidance Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 bg-[#0d1326] border-b border-amber-700/50 text-xs">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-            <span className="font-pixel text-[9px] sm:text-[10px] text-red-400 tracking-wider uppercase">
-              INTERIOR DA MANSÃO // GALERIA DOS QUADROS
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="font-pixel text-[9px] sm:text-[10px] text-amber-300 tracking-wider uppercase">
+              GRAND CINE OLHINHOS // GALERIA &quot;EM CARTAZ&quot;
             </span>
           </div>
 
-          <div className="font-vt text-sm text-zinc-300 flex flex-wrap items-center gap-2.5">
+          <div className="font-vt text-sm text-zinc-200 flex flex-wrap items-center gap-2.5">
             <button
               onClick={() => {
                 soundEngine.playRomanticChime();
                 onOpenButlerAgent();
               }}
-              className="px-2.5 py-0.5 bg-cyan-950/90 hover:bg-cyan-900 border border-cyan-500/80 text-cyan-200 font-vt text-sm flex items-center gap-1.5 shadow-[0_0_12px_rgba(6,182,212,0.3)] transition cursor-pointer"
+              className="px-2.5 py-0.5 bg-amber-950/90 hover:bg-amber-900 border border-amber-400/80 text-amber-100 font-vt text-sm flex items-center gap-1.5 shadow-[0_0_12px_rgba(245,158,11,0.3)] transition cursor-pointer"
             >
-              <Bot className="w-3.5 h-3.5 text-cyan-400" />
-              <span>🕯️ Falar com George</span>
+              <Clapperboard className="w-3.5 h-3.5 text-amber-300" />
+              <span>🎬 Falar com George (Concierge)</span>
             </button>
 
             <button
               onClick={() => {
-                soundEngine.playDoorCreak();
+                soundEngine.playRomanticChime();
                 onEnterChosenHall();
               }}
-              className="px-2.5 py-0.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-600/80 text-amber-200 font-vt text-sm flex items-center gap-1.5 transition cursor-pointer"
+              className="px-2.5 py-0.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/80 text-rose-100 font-vt text-sm flex items-center gap-1.5 transition cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Entrar na Sala dos Filmes Escolhidos ({chosenCount}) →</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>Sala VIP dos Escolhidos ({chosenCount}) →</span>
             </button>
           </div>
         </div>
 
-        {/* Pixel Art Corridor Canvas */}
-        <div className="relative w-full aspect-[420/215] max-h-[500px] bg-[#060307]">
+        {/* Pixel Art Cinema Lobby Canvas */}
+        <div className="relative w-full aspect-[420/215] max-h-[500px] bg-[#070b16]">
           <canvas
             ref={canvasRef}
             width={VIEW_W}
@@ -1072,22 +939,22 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
             }`}
           />
 
-          <div className="pointer-events-none absolute inset-0 crt-scanlines opacity-35" />
+          <div className="pointer-events-none absolute inset-0 crt-scanlines opacity-20" />
 
           {hoveredButler && (
-            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 bg-black/92 border border-cyan-400 text-cyan-200 font-vt text-base tracking-wide flex items-center gap-2 shadow-xl">
-              <Bot className="w-4 h-4 text-cyan-400 animate-bounce" />
+            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 bg-black/92 border border-amber-400 text-amber-200 font-vt text-base tracking-wide flex items-center gap-2 shadow-xl">
+              <Bot className="w-4 h-4 text-amber-400 animate-bounce" />
               <span>
-                🕯️ <strong>George, o Mordomo Fantasma</strong> — Clique para conversar, pedir sugestões ou gerenciar os quadros!
+                🎬 <strong>George, o Concierge Cinéfilo</strong> — Clique para pedir sugestões, saber onde assistir ou gerenciar os cartazes!
               </span>
             </div>
           )}
 
           {hoveredPaintingIdx !== null && visibleMovies[hoveredPaintingIdx] && (
-            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 bg-black/90 border border-amber-500/80 text-amber-200 font-vt text-base tracking-wide flex items-center gap-2 shadow-xl">
+            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 bg-black/90 border border-amber-400 text-amber-200 font-vt text-base tracking-wide flex items-center gap-2 shadow-xl">
               <Eye className="w-4 h-4 text-amber-400 animate-pulse" />
               <span>
-                Clique para examinar:{' '}
+                Clique para abrir:{' '}
                 <strong>{visibleMovies[hoveredPaintingIdx].title}</strong> (
                 {visibleMovies[hoveredPaintingIdx].year})
               </span>
@@ -1095,20 +962,20 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
           )}
 
           {hoveredProp && (
-            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-black/90 border border-red-700 text-red-200 font-vt text-base flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-red-500" />
+            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-black/90 border border-amber-500 text-amber-200 font-vt text-base flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
               <span>
                 {getCorridorProps().find((p) => p.id === hoveredProp)?.promptLabel}
               </span>
             </div>
           )}
 
-          {/* In-Scene RPG Investigation Overlay when an architectural secret is triggered */}
+          {/* In-Scene RPG Discovery Overlay when a Cinema Easter Egg is triggered */}
           {eventMessage && (
-            <div className="absolute bottom-3 left-3 right-28 sm:right-36 bg-black/92 border-2 border-red-700/90 px-4 py-2.5 shadow-[0_0_30px_rgba(0,0,0,0.95)] flex items-start justify-between gap-3 animate-fadeIn">
+            <div className="absolute bottom-3 left-3 right-28 sm:right-36 bg-[#090d1a]/95 border-2 border-amber-400 px-4 py-2.5 shadow-[0_0_30px_rgba(0,0,0,0.95)] flex items-start justify-between gap-3 animate-fadeIn">
               <div className="space-y-0.5">
-                <div className="font-pixel text-[8px] sm:text-[9px] text-amber-400 uppercase tracking-wider">
-                  {eventMessage.location} // {eventMessage.title}
+                <div className="font-pixel text-[8px] sm:text-[9px] text-amber-300 uppercase tracking-wider">
+                  ★ {eventMessage.location} // {eventMessage.title}
                 </div>
                 <p className="font-serif-horror italic text-sm sm:text-base text-zinc-100 leading-snug">
                   {eventMessage.text}
@@ -1116,7 +983,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
               </div>
               <button
                 onClick={() => setEventMessage(null)}
-                className="text-xs font-vt text-red-300 hover:text-white uppercase tracking-wider shrink-0 cursor-pointer"
+                className="text-xs font-vt text-amber-300 hover:text-white uppercase tracking-wider shrink-0 cursor-pointer"
               >
                 [X]
               </button>
@@ -1126,8 +993,8 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
           <button
             onClick={() => walkToPainting(activePaintingIdx - 1)}
             disabled={activePaintingIdx <= 0}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/80 hover:bg-red-950/90 disabled:opacity-25 border border-red-800/70 text-red-200 transition cursor-pointer"
-            title="Quadro Anterior (←)"
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/80 hover:bg-amber-950/90 disabled:opacity-25 border border-amber-600/70 text-amber-200 transition cursor-pointer"
+            title="Cartaz Anterior (←)"
           >
             <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
@@ -1135,21 +1002,21 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
           <button
             onClick={() => walkToPainting(activePaintingIdx + 1)}
             disabled={activePaintingIdx >= visibleMovies.length - 1}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/80 hover:bg-red-950/90 disabled:opacity-25 border border-red-800/70 text-red-200 transition cursor-pointer"
-            title="Próximo Quadro (→)"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/80 hover:bg-amber-950/90 disabled:opacity-25 border border-amber-600/70 text-amber-200 transition cursor-pointer"
+            title="Próximo Cartaz (→)"
           >
             <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
 
-          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/80 border border-zinc-800 px-2.5 py-1">
-            <Footprints className="w-3.5 h-3.5 text-red-400 mr-1" />
+          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/80 border border-amber-900/60 px-2.5 py-1">
+            <Footprints className="w-3.5 h-3.5 text-amber-400 mr-1" />
             <button
               onMouseDown={() => (keysRef.current.left = true)}
               onMouseUp={() => (keysRef.current.left = false)}
               onMouseLeave={() => (keysRef.current.left = false)}
               onTouchStart={() => (keysRef.current.left = true)}
               onTouchEnd={() => (keysRef.current.left = false)}
-              className="px-2.5 py-0.5 bg-zinc-900 hover:bg-red-950 border border-zinc-700 text-zinc-200 font-pixel text-[10px] cursor-pointer"
+              className="px-2.5 py-0.5 bg-zinc-900 hover:bg-amber-950 border border-zinc-700 text-zinc-200 font-pixel text-[10px] cursor-pointer"
             >
               ◄
             </button>
@@ -1159,21 +1026,21 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
               onMouseLeave={() => (keysRef.current.right = false)}
               onTouchStart={() => (keysRef.current.right = true)}
               onTouchEnd={() => (keysRef.current.right = false)}
-              className="px-2.5 py-0.5 bg-zinc-900 hover:bg-red-950 border border-zinc-700 text-zinc-200 font-pixel text-[10px] cursor-pointer"
+              className="px-2.5 py-0.5 bg-zinc-900 hover:bg-amber-950 border border-zinc-700 text-zinc-200 font-pixel text-[10px] cursor-pointer"
             >
               ►
             </button>
           </div>
         </div>
 
-        {/* ACTIVE PAINTING HUD PANEL */}
+        {/* ACTIVE MOVIE HUD PANEL (Hybrid: Terror Template vs. Cinema Template) */}
         {currentMovie ? (
-          <div className="bg-[#0b060c] border-t-2 border-[#3d0e18] p-4 sm:p-5">
+          <div className="bg-[#090d1a] border-t-2 border-amber-600/70 p-4 sm:p-5">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
               <div className="lg:col-span-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div
                   onClick={() => onSelectMovie(currentMovie)}
-                  className="relative w-20 sm:w-24 aspect-[2/3] border-2 border-amber-600/80 bg-black p-0.5 shadow-[0_0_25px_rgba(217,119,6,0.3)] shrink-0 cursor-pointer group overflow-hidden"
+                  className="relative w-20 sm:w-24 aspect-[2/3] border-2 border-amber-400 bg-black p-0.5 shadow-[0_0_25px_rgba(245,158,11,0.3)] shrink-0 cursor-pointer group overflow-hidden"
                 >
                   {currentMovie.customPosterUrl ? (
                     <img
@@ -1186,7 +1053,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="w-full h-full bg-red-950/40 flex items-center justify-center font-pixel text-[8px] text-red-300 text-center p-1">
+                    <div className="w-full h-full bg-amber-950/40 flex items-center justify-center font-pixel text-[8px] text-amber-300 text-center p-1">
                       {currentMovie.title}
                     </div>
                   )}
@@ -1194,25 +1061,39 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
 
                 <div className="space-y-1.5">
                   <div className="flex flex-wrap items-center gap-2 text-xs font-vt tracking-widest uppercase">
-                    <span className="px-2 py-0.5 bg-red-950/80 border border-red-800/70 text-red-300">
+                    <span
+                      className={`px-2 py-0.5 border ${
+                        currentIsHorror
+                          ? 'bg-red-950/80 border-red-700/80 text-red-200'
+                          : 'bg-amber-950/80 border-amber-600/80 text-amber-200'
+                      }`}
+                    >
                       {currentMovie.tapeNumber}
                     </span>
-                    <span className="px-2 py-0.5 bg-amber-500/20 border border-amber-500/60 text-amber-300 font-bold flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <span className="px-2 py-0.5 bg-[#f5c518] text-black font-bold flex items-center gap-1">
+                      <Star className="w-3 h-3 fill-black text-black" />
                       IMDb {currentMovie.imdbRating || '7.2'}/10
                     </span>
-                    <span className="text-amber-400">{currentMovie.subgenre}</span>
+                    <span className="text-amber-300">{currentMovie.subgenre}</span>
                     <span className="text-zinc-500">•</span>
                     <span className="text-zinc-300">
                       {currentMovie.year} ({currentMovie.duration})
                     </span>
-                    <span className="flex items-center gap-1 text-red-400 ml-1">
-                      <Activity className="w-3.5 h-3.5 animate-pulse" />
-                      {currentMovie.bpm} BPM
-                    </span>
+
+                    {currentIsHorror ? (
+                      <span className="flex items-center gap-1 text-red-400 ml-1">
+                        <Activity className="w-3.5 h-3.5 animate-pulse" />
+                        Terrômetro: {currentMovie.bpm} BPM ({currentMovie.fearLevel}/5)
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-amber-300 ml-1">
+                        <Film className="w-3.5 h-3.5 text-amber-400" />
+                        Cinêmetro VIP ★ {currentMovie.fearLevel}/5
+                      </span>
+                    )}
                   </div>
 
-                  <h2 className="font-gothic text-xl sm:text-3xl text-white glitch-text">
+                  <h2 className="font-gothic text-xl sm:text-3xl text-white">
                     {currentMovie.title}
                   </h2>
 
@@ -1254,20 +1135,28 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
               <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5 justify-end">
                 <button
                   onClick={() => {
-                    soundEngine.playVhsStatic(0.18, 0.15);
+                    soundEngine.playRomanticChime();
                     onSelectMovie(currentMovie);
                   }}
-                  className="px-4 py-2.5 bg-[#1e0b14] hover:bg-[#331020] border border-amber-600/70 text-amber-200 font-pixel text-[10px] tracking-wider uppercase flex items-center justify-center gap-2 transition cursor-pointer"
+                  className="px-4 py-2.5 bg-[#161f38] hover:bg-[#1f2d52] border border-amber-500/80 text-amber-200 font-pixel text-[10px] tracking-wider uppercase flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <Eye className="w-4 h-4 text-amber-400" />
-                  <span>Examinar Quadro (Detalhes)</span>
+                  <span>Ficha do Filme &amp; Streaming</span>
                 </button>
 
                 <button
                   onClick={() => onDirectConfirmMovie(currentMovie)}
-                  className="px-4 py-3 bg-[#6b0913] hover:bg-[#991b1b] border-2 border-red-500 text-white font-pixel text-[10px] tracking-wider uppercase shadow-[0_0_25px_rgba(220,38,38,0.45)] flex items-center justify-center gap-2 transition cursor-pointer"
+                  className={`px-4 py-3 border-2 text-white font-pixel text-[10px] tracking-wider uppercase flex items-center justify-center gap-2 transition cursor-pointer ${
+                    currentIsHorror
+                      ? 'bg-[#6b0913] hover:bg-[#991b1b] border-red-500 shadow-[0_0_25px_rgba(220,38,38,0.45)]'
+                      : 'bg-amber-700 hover:bg-amber-600 border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.45)]'
+                  }`}
                 >
-                  <Flame className="w-4 h-4 text-amber-300 animate-pulse" />
+                  {currentIsHorror ? (
+                    <Flame className="w-4 h-4 text-amber-300 animate-pulse" />
+                  ) : (
+                    <Film className="w-4 h-4 text-amber-200" />
+                  )}
                   <span>Escolher Este Filme</span>
                 </button>
 
@@ -1277,67 +1166,76 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
                       soundEngine.playDoorCreak();
                       onRemoveMovieFromWall(currentMovie.id);
                     }}
-                    className="px-4 py-2 bg-[#16070a] hover:bg-red-950/90 border border-red-900/70 hover:border-red-500 text-red-300 hover:text-white font-vt text-sm tracking-wider uppercase flex items-center justify-center gap-1.5 transition cursor-pointer"
-                    title="Excluir este quadro da parede do corredor"
+                    className="px-4 py-2 bg-[#160b12] hover:bg-red-950/90 border border-red-900/70 hover:border-red-500 text-red-300 hover:text-white font-vt text-sm tracking-wider uppercase flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    title="Retirar este cartaz da galeria"
                   >
                     <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    <span>Excluir Quadro da Parede</span>
+                    <span>Excluir Quadro da Galeria</span>
                   </button>
                 )}
               </div>
             </div>
           </div>
         ) : (
-          <div className="bg-[#0b060c] border-t-2 border-[#3d0e18] p-6 text-center space-y-3">
+          <div className="bg-[#090d1a] border-t-2 border-amber-600/70 p-6 text-center space-y-3">
             <div className="font-gothic text-xl sm:text-2xl text-amber-200">
-              A Parede da Galeria está Vazia
+              A Galeria do Cinema está Vazia
             </div>
             <p className="font-serif-horror text-sm sm:text-base text-zinc-400 max-w-xl mx-auto">
-              Todos os quadros foram retirados da parede. Converse com o Mordomo George para escolher e pendurar novos filmes na galeria!
+              Todos os cartazes foram retirados. Converse com o Concierge George para adicionar qualquer filme novo (de qualquer gênero!) na parede!
             </p>
             <button
               onClick={() => {
                 soundEngine.playRomanticChime();
                 onOpenButlerAgent();
               }}
-              className="px-5 py-2.5 bg-cyan-950 hover:bg-cyan-900 border border-cyan-500 text-cyan-200 font-pixel text-[10px] uppercase tracking-wider inline-flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 bg-amber-900 hover:bg-amber-800 border border-amber-400 text-amber-100 font-pixel text-[10px] uppercase tracking-wider inline-flex items-center gap-2 cursor-pointer"
             >
-              <Bot className="w-4 h-4 text-cyan-400" />
-              <span>🕯️ Falar com George para Pendurar Quadros</span>
+              <Clapperboard className="w-4 h-4 text-amber-300" />
+              <span>🎬 Falar com George para Adicionar Filmes</span>
             </button>
           </div>
         )}
 
         {/* Quick Corridor Mini-Map Strip */}
-        <div className="bg-[#060307] border-t border-[#260b12] px-3.5 py-2.5 flex items-center gap-2 overflow-x-auto">
-          <span className="font-pixel text-[8px] text-zinc-500 uppercase tracking-wider shrink-0 mr-1">
-            Quadros do Corredor ({visibleMovies.length}):
+        <div className="bg-[#050811] border-t border-amber-900/50 px-3.5 py-2.5 flex items-center gap-2 overflow-x-auto">
+          <span className="font-pixel text-[8px] text-amber-400/90 uppercase tracking-wider shrink-0 mr-1">
+            Em Cartaz ({visibleMovies.length}):
           </span>
           {visibleMovies.length === 0 && (
             <span className="font-vt text-sm text-zinc-500 italic">
-              Nenhum quadro pendurado — você tem controle total para adicionar novos com o George!
+              Nenhum cartaz pendurado — adicione novos filmes com o George!
             </span>
           )}
           {visibleMovies.map((m, idx) => {
             const isCurrent = idx === activePaintingIdx;
+            const mHorror = isHorrorMovie(m);
             return (
               <div
                 key={m.id}
                 className={`border font-vt text-sm flex items-center shrink-0 transition ${
                   isCurrent
-                    ? 'bg-[#3b0a14] border-amber-500 text-amber-200 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
-                    : 'bg-[#0e070c] border-zinc-800 text-zinc-400 hover:border-red-800 hover:text-zinc-200'
+                    ? 'bg-amber-950/80 border-amber-400 text-amber-100 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                    : 'bg-[#0c1222] border-zinc-800 text-zinc-400 hover:border-amber-600 hover:text-zinc-200'
                 }`}
               >
                 <button
                   onClick={() => walkToPainting(idx, isCurrent)}
                   className="px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
                 >
-                  <Skull
-                    className={`w-3 h-3 ${
-                      isCurrent ? 'text-amber-400' : 'text-red-700'
-                    }`}
-                  />
+                  {mHorror ? (
+                    <Skull
+                      className={`w-3 h-3 ${
+                        isCurrent ? 'text-red-400' : 'text-red-600'
+                      }`}
+                    />
+                  ) : (
+                    <Film
+                      className={`w-3 h-3 ${
+                        isCurrent ? 'text-amber-300' : 'text-amber-500'
+                      }`}
+                    />
+                  )}
                   <span>
                     {idx + 1}. {m.title}
                   </span>

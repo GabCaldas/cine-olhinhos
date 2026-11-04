@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { EasterEggId } from '../types/horror';
 import { EASTER_EGGS, TOTAL_EASTER_EGGS } from '../data/easterEggs';
 import { soundEngine } from '../utils/soundEngine';
-import { X, Eye, Lock, CheckCircle2, Skull, MapPin } from 'lucide-react';
+import { X, Eye, Lock, CheckCircle2, Sparkles, MapPin } from 'lucide-react';
 
 interface SecretsModalProps {
   isOpen: boolean;
@@ -17,14 +17,14 @@ export const SecretsModal: React.FC<SecretsModalProps> = ({
   onDiscoverEgg,
   onClose,
 }) => {
-  const [portraitStare, setPortraitStare] = useState(false);
+  const [rockPhilosophize, setRockPhilosophize] = useState(false);
 
   if (!isOpen) return null;
 
-  const handlePortraitInteract = () => {
-    setPortraitStare((prev) => !prev);
-    soundEngine.playVhsStatic(0.25, 0.18);
-    onDiscoverEgg('cursed_portrait');
+  const handleRockInteract = () => {
+    setRockPhilosophize((prev) => !prev);
+    soundEngine.playEeaaoRocksChime();
+    onDiscoverEgg('eeaao_rocks');
   };
 
   return (
@@ -34,14 +34,14 @@ export const SecretsModal: React.FC<SecretsModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl bg-[#0b060a] border-2 border-red-800/80 shadow-[0_0_80px_rgba(153,27,27,0.5)] overflow-hidden my-auto"
+        className="relative w-full max-w-2xl bg-[#0b060a] border-2 border-amber-700/80 shadow-[0_0_80px_rgba(245,158,11,0.35)] overflow-hidden my-auto"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 bg-[#16070d] border-b border-red-900/60">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-[#16070d] border-b border-amber-900/60">
           <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-red-500" />
-            <h2 className="font-pixel text-[10px] sm:text-xs text-red-200 tracking-wider uppercase">
-              MISTÉRIOS &amp; APARIÇÕES DO CORREDOR ({discoveredEggs.length}/{TOTAL_EASTER_EGGS})
+            <Eye className="w-4 h-4 text-amber-400" />
+            <h2 className="font-pixel text-[10px] sm:text-xs text-amber-200 tracking-wider uppercase">
+              EASTER EGGS DO GRAND CINE OLHINHOS ({discoveredEggs.length}/{TOTAL_EASTER_EGGS})
             </h2>
           </div>
 
@@ -55,39 +55,39 @@ export const SecretsModal: React.FC<SecretsModalProps> = ({
 
         {/* SECRETS JOURNAL */}
         <div className="p-5 sm:p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-          <p className="font-serif-horror italic text-sm sm:text-base text-zinc-300 border-b border-red-950/70 pb-3">
-            A mansão esconde presenças nas janelas, espelhos, portas entreabertas e frestas do assoalho. Caminhe pelo corredor ou interaja com o cenário para despertá-las.
+          <p className="font-serif-horror italic text-sm sm:text-base text-zinc-300 border-b border-amber-950/70 pb-3">
+            O foyer do Grand Cine Olhinhos guarda 9 referências interativas dos filmes mais amados de vocês! Caminhe pelo corredor ou clique nos objetos do cenário para despertá-las.
           </p>
 
-          {/* Interactive Portrait Inspection */}
+          {/* Interactive EEAAO Rocks Inspection */}
           <div
-            onClick={handlePortraitInteract}
-            onMouseEnter={() => setPortraitStare(true)}
-            onMouseLeave={() => setPortraitStare(false)}
-            className="p-4 bg-[#12070d] border border-red-900/60 flex items-center gap-4 cursor-pointer hover:border-red-500 transition"
+            onClick={handleRockInteract}
+            onMouseEnter={() => setRockPhilosophize(true)}
+            onMouseLeave={() => setRockPhilosophize(false)}
+            className="p-4 bg-[#12070d] border border-amber-800/60 flex items-center gap-4 cursor-pointer hover:border-amber-400 transition"
           >
             <div className="w-16 h-20 border-2 border-amber-700/70 bg-black flex flex-col items-center justify-center shrink-0 relative overflow-hidden">
-              <Skull
+              <Sparkles
                 className={`w-9 h-9 transition-all ${
-                  portraitStare
-                    ? 'text-yellow-400 scale-125 animate-pulse'
-                    : 'text-zinc-600'
+                  rockPhilosophize
+                    ? 'text-amber-300 scale-125 animate-pulse'
+                    : 'text-zinc-500'
                 }`}
               />
             </div>
             <div className="space-y-1">
               <div className="font-pixel text-[9px] text-amber-300 uppercase">
-                O Retrato que Observa a Galeria (Clique para inspecionar)
+                Pedestal do Multiverso: As Duas Pedras (Clique para contemplar)
               </div>
               <p className="font-serif-horror text-sm text-zinc-300">
-                {portraitStare
-                  ? 'A pintura escurece e revela dois olhos amarelos penetrantes sob um véu negro encarando vocês dois!'
-                  : 'Um retrato antigo pendurado sobre o candelabro. Algo parece se mexer atrás da tinta a óleo...'}
+                {rockPhilosophize
+                  ? 'Silêncio absoluto no cânion... Dois olhinhos plásticos (googly eyes) brilham nas rochas e a legenda aparece: "Just be a rock. Ha ha ha!"'
+                  : 'Duas pedras silenciosas repousam sobre uma redoma no foyer do cinema. Parece um universo onde não existem impostos...'}
               </p>
             </div>
           </div>
 
-          {/* List of All 9 Contextual Mansion Secrets */}
+          {/* List of All 9 Contextual Cinema Easter Eggs */}
           <div className="space-y-2.5">
             {(Object.keys(EASTER_EGGS) as EasterEggId[]).map((id) => {
               const egg = EASTER_EGGS[id];
@@ -97,19 +97,19 @@ export const SecretsModal: React.FC<SecretsModalProps> = ({
                   key={id}
                   className={`p-3.5 border transition ${
                     isFound
-                      ? 'bg-[#14080e] border-red-800/70'
+                      ? 'bg-[#14080e] border-amber-700/70'
                       : 'bg-[#080508] border-zinc-800/80 opacity-75'
                   }`}
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       {isFound ? (
-                        <CheckCircle2 className="w-4 h-4 text-red-500 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
                       ) : (
                         <Lock className="w-4 h-4 text-zinc-500 shrink-0" />
                       )}
                       <span className="font-pixel text-[9px] sm:text-[10px] text-zinc-100 uppercase">
-                        {isFound ? egg.title : 'Mistério Oculto na Mansão'}
+                        {isFound ? egg.title : 'Easter Egg Oculto no Cinema'}
                       </span>
                     </div>
                     <span className="font-vt text-xs text-amber-400/90 flex items-center gap-1">

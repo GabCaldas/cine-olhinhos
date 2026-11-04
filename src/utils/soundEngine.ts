@@ -86,41 +86,38 @@ class HorrorSoundEngine {
       rainGain.connect(this.masterGain);
       rainSource.start();
 
-      // 2. 2D Retro Horror Chiptune Sequencer (Haunting D Harmonic Minor Gothic Theme)
-      // Frequencies in Hz:
-      // D3=146.83, E3=164.81, F3=174.61, G3=196.00, A3=220.00, Bb3=233.08, C#4=277.18
-      // D4=293.66, E4=329.63, F4=349.23, G4=392.00, G#4=415.30, A4=440.00, Bb4=466.16, C#5=554.37, D5=587.33, E5=659.25, F5=698.46
+      // 2. 2D Retro Cinema Lounge Chiptune Sequencer (Magical Nostalgic Cinema & Starlight Theme)
       const leadMelody: Array<number | null> = [
-        // Bar 1 (D minor eerie music-box motif)
-        587.33, null, 440.00, 466.16, 440.00, null, 349.23, 329.63,
+        // Bar 1 (Warm nostalgic cinema music-box motif in F Major / D Minor)
+        523.25, null, 659.25, 587.33, 523.25, null, 440.00, 392.00,
         // Bar 2
-        293.66, null, 277.18, null, 293.66, 349.23, 440.00, null,
-        // Bar 3 (Tension climb - Lavender / Castlevania vibe)
-        698.46, null, 659.25, null, 466.16, null, 440.00, 415.30,
+        349.23, null, 392.00, null, 440.00, 523.25, 587.33, null,
+        // Bar 3 (Ghibli / Starlight climb)
+        698.46, null, 659.25, null, 587.33, null, 523.25, 440.00,
         // Bar 4
-        440.00, null, 349.23, 329.63, 277.18, null, 220.00, null,
-        // Bar 5 (Tubular / Exorcist-inspired gothic arpeggio)
-        293.66, 440.00, 587.33, 440.00, 466.16, 440.00, 392.00, 440.00,
+        523.25, null, 440.00, 392.00, 349.23, null, 293.66, null,
+        // Bar 5 (Romantic cinema arpeggio)
+        349.23, 440.00, 523.25, 659.25, 587.33, 523.25, 440.00, 523.25,
         // Bar 6
-        349.23, 440.00, 329.63, 440.00, 277.18, 329.63, 220.00, null,
-        // Bar 7 (Descent into shadows)
-        466.16, null, 440.00, null, 392.00, null, 349.23, null,
+        392.00, 440.00, 523.25, 440.00, 349.23, 392.00, 440.00, null,
+        // Bar 7 (Gentle resolution)
+        523.25, null, 466.16, null, 440.00, null, 392.00, null,
         // Bar 8
-        329.63, null, 277.18, null, 293.66, null, null, null,
+        349.23, null, 329.63, null, 349.23, null, null, null,
       ];
 
       const arpNotes: number[] = [
-        293.66, 349.23, 440.00, 466.16, 293.66, 349.23, 440.00, 349.23,
-        277.18, 329.63, 440.00, 466.16, 293.66, 349.23, 440.00, 349.23,
+        349.23, 440.00, 523.25, 659.25, 349.23, 440.00, 523.25, 440.00,
+        293.66, 349.23, 440.00, 523.25, 293.66, 349.23, 440.00, 349.23,
         233.08, 293.66, 349.23, 466.16, 233.08, 293.66, 349.23, 293.66,
-        220.00, 277.18, 329.63, 440.00, 220.00, 277.18, 329.63, 277.18,
+        261.63, 329.63, 392.00, 523.25, 261.63, 329.63, 392.00, 329.63,
       ];
 
       const bassNotes: Array<number | null> = [
+        87.31, null, null, null, 87.31, null, null, null,  // F2
         73.42, null, null, null, 73.42, null, null, null,  // D2
-        69.30, null, null, null, 73.42, null, null, null,  // C#2 -> D2
         58.27, null, null, null, 58.27, null, null, null,  // Bb1
-        55.00, null, null, null, 69.30, null, null, null,  // A1 -> C#2
+        65.41, null, null, null, 65.41, null, null, null,  // C2
       ];
 
       const stepDurationMs = 285; // ~105 BPM 8th-note retro horror groove
@@ -272,6 +269,96 @@ class HorrorSoundEngine {
     const notes = [523.25, 659.25, 587.33, 783.99];
     notes.forEach((f, i) => {
       this.playChiptuneNote(f, now + i * 0.09, 0.08, 'square', 0.11);
+    });
+  }
+
+  // Megamind Electric Rock Power Chord ("PRESENTATION!")
+  public playMegamindSynth(): void {
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain || this.isMuted) return;
+    const now = ctx.currentTime;
+    const riff = [329.63, 392.0, 440.0, 493.88, 659.25];
+    riff.forEach((f, i) => {
+      this.playChiptuneNote(f, now + i * 0.085, 0.16, 'sawtooth', 0.1);
+      this.playChiptuneNote(f * 0.5, now + i * 0.085, 0.18, 'square', 0.07);
+    });
+  }
+
+  // Everything Everywhere All at Once — Peaceful Desert Rocks Chord
+  public playEeaaoRocksChime(): void {
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain || this.isMuted) return;
+    const now = ctx.currentTime;
+    // Soft ambient warm chord
+    [261.63, 329.63, 392.0, 493.88].forEach((f, i) => {
+      this.playChiptuneNote(f, now + i * 0.06, 0.85, 'sine', 0.07);
+    });
+  }
+
+  // The Wild Robot (Roz & Brightbill) — Gentle Robotic Chirp + Nature Harmony
+  public playWildRobotChime(): void {
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain || this.isMuted) return;
+    const now = ctx.currentTime;
+    const notes = [587.33, 880.0, 783.99, 1046.5, 1174.66];
+    notes.forEach((f, i) => {
+      this.playChiptuneNote(f, now + i * 0.08, 0.22, 'triangle', 0.1);
+    });
+  }
+
+  // My Neighbor Totoro — Joyful Ghibli Pentatonic Flute Arpeggio
+  public playTotoroMelody(): void {
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain || this.isMuted) return;
+    const now = ctx.currentTime;
+    const notes = [523.25, 587.33, 659.25, 783.99, 1046.5, 783.99];
+    notes.forEach((f, i) => {
+      this.playChiptuneNote(f, now + i * 0.1, 0.22, 'triangle', 0.11);
+    });
+  }
+
+  // Teen Beach Movie — Upbeat 60s Surf Guitar Lick
+  public playTeenBeachSurf(): void {
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain || this.isMuted) return;
+    const now = ctx.currentTime;
+    const surfNotes = [392.0, 493.88, 587.33, 659.25, 587.33, 783.99];
+    surfNotes.forEach((f, i) => {
+      this.playChiptuneNote(f, now + i * 0.08, 0.14, 'square', 0.09);
+    });
+  }
+
+  // Pitch Perfect — Cup Song Rhythm + Barden Bellas Harmony
+  public playPitchPerfectCupSong(): void {
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain || this.isMuted) return;
+    const now = ctx.currentTime;
+    // Clap-clap, tap-tap-tap, clap, harmony!
+    const rhythmOffsets = [0, 0.14, 0.3, 0.39, 0.48, 0.64];
+    rhythmOffsets.forEach((t, idx) => {
+      const freq = idx < 2 || idx === 5 ? 920 : 540;
+      this.playChiptuneNote(freq, now + t, 0.045, 'triangle', 0.13);
+    });
+    // Vocal A Capella Major Chord at the end
+    [523.25, 659.25, 783.99, 1046.5].forEach((f) => {
+      this.playChiptuneNote(f, now + 0.78, 0.55, 'triangle', 0.08);
+    });
+  }
+
+  // Cozy & Sweet Cinema Screening Sequence Soundscape (for Non-Horror Movies!)
+  public playCinemaSequence(): void {
+    const ctx = this.ensureContext();
+    if (!ctx || !this.masterGain || this.isMuted) return;
+    const now = ctx.currentTime;
+    // Warm projector hum & gentle ascending cinema fanfare
+    const melody = [
+      261.63, 329.63, 392.0, 523.25,
+      349.23, 440.0, 523.25, 698.46,
+      392.0, 493.88, 587.33, 783.99,
+      523.25, 659.25, 783.99, 1046.5,
+    ];
+    melody.forEach((f, i) => {
+      this.playChiptuneNote(f, now + i * 0.22, 0.45, 'triangle', 0.085);
     });
   }
 

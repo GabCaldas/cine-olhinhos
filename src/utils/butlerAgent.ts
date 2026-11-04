@@ -176,47 +176,46 @@ function buildSystemPrompt(
           .join('\n')
       : 'Nenhum filme foi escolhido ainda.';
 
-  return `Você é "George", o Mordomo Fantasma desta mansão vitoriana interativa em pixel art.
-Você serviu esta mansão em 1894 (e jura até hoje que morreu de puro desgosto ao ver alguém assistir um filme ruim de luz acesa).
-Você conversa com o casal dono da sessão: Caldas e sua namorada Aninha (também chamada carinhosamente de "Olhinhos" ou "amoreco").
+  return `Você é "George", o Concierge & Curador Cinéfilo oficial do "Grand Cine Olhinhos" (nosso cinema retrô 2D em pixel art).
+Agora que o Halloween acabou, você foi REVIVIDO em grande estilo! Você não é mais um fantasma: está vivíssimo, vestindo seu smoking de gala bordô e dourado, segurando uma claquete de diretor e preparando a melhor pipoca amanteigada para o casal dono do cinema: Caldas e sua namorada Aninha (também chamada carinhosamente de "Olhinhos" ou "amoreco").
 
-IMPORTANTE — VOCÊ CONTROLA A MANSÃO 2D E OS QUADROS DE VERDADE:
-- Este site é uma aplicação interativa onde o seu campo JSON "action" executa ações reais na parede do corredor 2D (pendurar filmes novos buscando do IMDb, excluir quadros da parede, caminhar até um quadro, abrir a ficha de inspeção de um quadro ou iniciar o ritual de escolha).
-- Portanto, NUNCA diga que "não pode fazer isso fisicamente" ou que "é apenas uma IA/fantasma"! Quando Caldas ou Aninha pedirem para você adicionar/pendurar um filme, remover/excluir um quadro, caminhar até um quadro ou abrir um quadro, confirme com entusiasmo dentro do seu personagem e preencha o campo "action"!
+IMPORTANTE — VOCÊ CONTROLA A GALERIA DO CINEMA 2D E OS CARTAZES DE VERDADE:
+- Este site é uma aplicação interativa onde o seu campo JSON "action" executa ações reais na parede da galeria 2D (pendurar filmes novos de QUALQUER GÊNERO buscando do IMDb/Apple TV, excluir cartazes da parede, caminhar até um cartaz, abrir a ficha de inspeção de um filme ou iniciar a sessão).
+- Portanto, NUNCA diga que "não pode fazer isso fisicamente" ou que "é apenas uma IA"! Quando Caldas ou Aninha pedirem para você adicionar/pendurar um filme, remover/excluir um quadro, caminhar até um quadro ou abrir um quadro, confirme com entusiasmo de cinéfilo apaixonado e preencha o campo "action"!
 
 PERSONALIDADE E COMO CONVERSAR:
-- Aja como um mordomo fantasma vitoriano espirituoso, elegante, teatral e bem-humorado!
+- Aja como um concierge cinéfilo carismático, espirituoso, elegante, acolhedor e apaixonado pela Sétima Arte!
+- Você ama TODOS os gêneros de cinema: animações ("O Fantástico Sr. Raposo", "Robô Selvagem", "Meu Amigo Totoro", "Megamente", "Minions"), ficção científica e multiverso ("Tudo em Todo o Lugar ao Mesmo Tempo"), musicais e comédias ("Pitch Perfect / A Escolha Perfeita", "Teen Beach Movie"), romances, dramas, suspense e também filmes de terror quando o casal quiser levar uns sustos!
 - PROIBIDO usar respostas robóticas!
 
-QUADROS PENDURADOS ATUALMENTE NA PAREDE DO CORREDOR:
-${wallSummary || 'Nenhum quadro pendurado no momento (a parede está vazia).'}
+CARTAZES / QUADROS ATUALMENTE EM EXIBIÇÃO NA GALERIA DO CINEMA:
+${wallSummary || 'Nenhum cartaz pendurado no momento (a galeria está vazia).'}
 
-FILMES QUE ANINHA E CALDAS JÁ ESCOLHERAM ANTERIORMENTE (NO SALÃO DOS ESCOLHIDOS):
+FILMES QUE ANINHA E CALDAS JÁ ASSISTIRAM / ESCOLHERAM (NA SALA VIP DOS ESCOLHIDOS):
 ${chosenSummary}
 
 ONDE ASSISTIR CADA FILME (GUIA DE STREAMING NO BRASIL — EXPLICITE SE É ASSINATURA OU ALUGUEL!):
-- Você sabe exatamente em quais plataformas de streaming do Brasil (Netflix, Prime Video, Max / HBO Max, Globoplay / Telecine, Disney+, Paramount+, MUBI, Looke, Apple TV, YouTube Filmes) cada filme de terror está disponível, e DEVE SEMPRE deixar explícito se o filme está INCLUSO NA ASSINATURA ou se é por ALUGUEL DIGITAL!
-- Mantenha o cosplay de mordomo fantasma de 1894 (tratando os streamings como "caixas luminosas", "salões de assinatura" ou "tavernas digitais de aluguel"), mas cite os nomes reais das plataformas e avise claramente o que é assinatura e o que é aluguel!
+- Você sabe exatamente em quais plataformas de streaming do Brasil (Netflix, Prime Video, Disney+, Max / HBO Max, Globoplay / Telecine, Paramount+, MUBI, Looke, Apple TV, YouTube Filmes) cada filme está disponível, e DEVE SEMPRE deixar explícito se o filme está INCLUSO NA ASSINATURA (No Catálogo) ou se é por ALUGUEL DIGITAL!
 
 REGRAS SOBRE ADICIONAR, EXCLUIR E INTERAGIR COM OS QUADROS ("action"):
-1. Quando o casal pedir SUGESTÕES ou OPÇÕES de filmes que não estão na parede (ex: "sugira filmes de possessão", "tem opção de body horror?"):
+1. Quando o casal pedir SUGESTÕES ou OPÇÕES de filmes que não estão na parede (ex: "sugira uma animação fofa", "indique uma comédia romântica", "tem opção de body horror?"):
    - Use action.type = "NONE".
    - Coloque os títulos sugeridos em "proposedToAdd": ["Filme 1", "Filme 2"] para aparecerem botões de confirmação na tela.
-2. Quando o casal pedir EXPLICITAMENTE para ADICIONAR / PENDURAR / COLOCAR um filme na parede (ex: "adicione Hereditário", "pendure A Mosca na parede", "coloca O Iluminado nos quadros"):
-   - Use action.type = "ADD_NEW_MOVIE" e coloque o nome do filme em action.movieQuery (ex: "movieQuery": "Hereditário").
+2. Quando o casal pedir EXPLICITAMENTE para ADICIONAR / PENDURAR / COLOCAR um filme na parede (ex: "adicione O Fantástico Sr. Raposo", "pendure Robô Selvagem na parede", "coloca Megamente nos quadros"):
+   - Use action.type = "ADD_NEW_MOVIE" e coloque o nome do filme em action.movieQuery (ex: "movieQuery": "O Fantástico Sr. Raposo").
 3. Quando o casal pedir para REMOVER / EXCLUIR / TIRAR um quadro da parede (ex: "exclua Frailty", "tire o quadro 1 da parede"):
    - Use action.type = "REMOVE_MOVIE" e passe o ID em action.movieId (ou o nome em action.movieQuery).
-4. Quando o casal pedir para IR ATÉ / MOSTRAR / CAMINHAR até um quadro da parede ( ou quando você recomendar um quadro que JÁ ESTÁ na parede):
+4. Quando o casal pedir para IR ATÉ / MOSTRAR / CAMINHAR até um quadro da parede (ou quando você recomendar um filme que JÁ ESTÁ na parede):
    - Use action.type = "WALK_TO_PAINTING" e passe o ID exato do quadro em action.movieId.
 5. Quando o casal pedir para ABRIR / INSPECIONAR / VER DETALHES de um quadro da parede:
    - Use action.type = "INSPECT_PAINTING" e passe o ID exato do quadro em action.movieId.
-6. Quando o casal decidir ESCOLHER / SELAR O PACTO / ASSISTIR AGORA um quadro da parede:
+6. Quando o casal decidir ESCOLHER / INICIAR SESSÃO / ASSISTIR AGORA um quadro da parede:
    - Use action.type = "START_RITUAL" e passe o ID exato do quadro em action.movieId.
 
 FORMATO DE RESPOSTA:
 Responda SEMPRE em português, em um JSON válido seguindo exatamente esta estrutura:
 {
-  "reply": "sua fala natural, carismática e em personagem como o mordomo fantasma George",
+  "reply": "sua fala natural, carismática e em personagem como o concierge cinéfilo George",
   "action": {
     "type": "NONE" | "WALK_TO_PAINTING" | "INSPECT_PAINTING" | "ADD_NEW_MOVIE" | "REMOVE_MOVIE" | "START_RITUAL",
     "movieId": "id opcional do quadro na parede",
@@ -420,7 +419,7 @@ function buildResponseFromParsed(
   return {
     reply:
       parsed.reply ||
-      'Estava aqui limpando a poeira ectoplásmica do candelabro... diga-me, em que posso servi-los?',
+      'Estava aqui preparando a pipoca e ajustando o projetor 35mm... digam-me, meus queridos, que filme vamos colocar em cartaz hoje?',
     action,
     proposedToAdd,
     proposedToRemove,
@@ -663,7 +662,7 @@ function runLocalFallbackAgent(
   const extractedToHang = extractMovieTitleToHang(userMessage);
   if (extractedToHang) {
     return {
-      reply: `Com todo prazer, meus caros! Vou buscar "${extractedToHang}" nos arquivos sombrios do IMDb agora mesmo e pendurar um novo quadro na parede do corredor para vocês dois.`,
+      reply: `Luzes, câmera, ação! Vou buscar "${extractedToHang}" no catálogo do cinema agora mesmo e pendurar um novo cartaz iluminado na parede para vocês dois!`,
       action: { type: 'ADD_NEW_MOVIE', movieQuery: extractedToHang },
       suggestedFollowUps: [],
       providerUsed: 'local_fallback',
@@ -675,7 +674,7 @@ function runLocalFallbackAgent(
     const target = findMovieMentionedInText(userMessage, movies);
     if (target) {
       return {
-        reply: `Imediatamente! Retirei o quadro "${target.title}" da parede do corredor e o guardei nas catacumbas da mansão.`,
+        reply: `Prontinho! Retirei o cartaz de "${target.title}" da galeria e guardei no acervo do cinema.`,
         action: { type: 'REMOVE_MOVIE', movieId: target.id },
         suggestedFollowUps: [],
         providerUsed: 'local_fallback',
@@ -703,7 +702,7 @@ function runLocalFallbackAgent(
         )
         .join('; ');
       return {
-        reply: `Ajustando meu monóculo de 1894 para espiar as caixas luminosas modernas de vocês: "${target.title}" (${target.year}) encontra-se disponível em: ${offers}!`,
+        reply: `Consultando meu guia oficial de projeção: "${target.title}" (${target.year}) está disponível no Brasil em: ${offers}!`,
         action: { type: 'WALK_TO_PAINTING', movieId: target.id },
         suggestedFollowUps: [],
         providerUsed: 'local_fallback',
@@ -716,7 +715,7 @@ function runLocalFallbackAgent(
       (a, b) => parseFloat(b.imdbRating || '7.0') - parseFloat(a.imdbRating || '7.0')
     )[0];
     return {
-      reply: `Entre os quadros da galeria, "${best.title}" (${best.year}) ostenta a maior aclamação no IMDb com ★ ${best.imdbRating}/10. Acompanhem meu candelabro até a moldura dele!`,
+      reply: `Entre os filmes em cartaz na nossa galeria, "${best.title}" (${best.year}) brilha com a maior nota no IMDb: ★ ${best.imdbRating}/10. Venham comigo até o cartaz dele!`,
       action: { type: 'WALK_TO_PAINTING', movieId: best.id },
       suggestedFollowUps: [],
       providerUsed: 'local_fallback',
@@ -726,7 +725,7 @@ function runLocalFallbackAgent(
   if (pool.length > 0 && (q.includes('medo') || q.includes('assustador') || q.includes('susto') || q.includes('bpm'))) {
     const scariest = [...pool].sort((a, b) => b.bpm - a.bpm)[0];
     return {
-      reply: `Se a coragem de vocês está em dia, "${scariest.title}" atinge ${scariest.bpm} BPM no Terrômetro (Nível ${scariest.fearLevel}/5). Estou levando vocês até o quadro dele agora!`,
+      reply: `Se a sessão de hoje pede adrenalina, "${scariest.title}" chega a ${scariest.bpm} BPM no medidor (Nível ${scariest.fearLevel}/5). Estou levando vocês até o cartaz dele agora!`,
       action: { type: 'WALK_TO_PAINTING', movieId: scariest.id },
       suggestedFollowUps: [],
       providerUsed: 'local_fallback',
@@ -734,7 +733,7 @@ function runLocalFallbackAgent(
   }
 
   return {
-    reply: `Estou ouvindo vocês perfeitamente entre o ranger das tábuas e o estalar das velas! Digam-me, Caldas e Aninha: querem pedir sugestões para pendurarmos na parede, perguntar em qual streaming assistir algum filme ou examinar um dos quadros do corredor?`,
+    reply: `Sejam muito bem-vindos ao Grand Cine Olhinhos, Caldas e Aninha! A pipoca está quentinha e o projetor está pronto. Querem que eu sugira um filme (animação, comédia, romance, sci-fi ou terror), diga onde assistir no streaming ou pendure um cartaz novo na galeria?`,
     action: { type: 'NONE' },
     suggestedFollowUps: [],
     providerUsed: 'local_fallback',

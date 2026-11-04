@@ -55,7 +55,7 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
     {
       role: 'assistant',
       content:
-        'Ora, ora... passos vivos no meu tapete! Boa noite, Caldas e Aninha. Sou George, o mordomo fantasma desta mansão desde 1894. Podem me perguntar onde assistir qualquer filme nas engenhocas modernas de vocês, pedir recomendações ou mandar adicionar e excluir qualquer quadro da parede!',
+        'Luzes, câmera, ação! Que alegria ter sangue correndo nas veias de novo! Bem-vindos ao Grand Cine Olhinhos, Caldas e Aninha! Sou George, agora bem vivo como o Concierge e Curador Cinéfilo particular de vocês. Podem me perguntar onde assistir qualquer filme nos streamings, pedir recomendações de qualquer gênero ou mandar colocar e tirar cartazes da nossa galeria!',
     },
   ]);
   const [input, setInput] = useState<string>('');
@@ -146,12 +146,13 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
       const count = movies.filter((m) => !m.isSecret).length;
       const newMovie: MovieTemplate = {
         id: `movie-agent-${Date.now()}`,
-        tapeNumber: `QUADRO ${count + 1} // CURADORIA DA MANSÃO`,
+        tapeNumber: `EM CARTAZ #${count + 1} // CINE OLHINHOS`,
         title: best.title,
         originalTitle: best.originalTitle,
         year: best.year,
         duration: best.duration,
         imdbRating: best.imdbRating || '7.2',
+        isHorror: best.isHorror,
         subgenre: best.subgenre,
         fearLevel: best.fearLevel,
         bpm: best.bpm,
@@ -301,11 +302,11 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
         className="relative w-full max-w-3xl bg-[#08050b] border-2 border-cyan-800/80 shadow-[0_0_90px_rgba(14,116,144,0.35),0_0_40px_rgba(185,28,28,0.25)] overflow-hidden my-auto flex flex-col max-h-[88vh]"
       >
         {/* Top Header */}
-        <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 bg-[#0e0814] border-b border-cyan-900/60">
+        <div className="shrink-0 flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 bg-[#0e0814] border-b border-amber-900/60">
           <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="font-pixel text-[9px] sm:text-xs text-cyan-200 tracking-wider uppercase">
-              GEORGE // O MORDOMO FANTASMA DA MANSÃO
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="font-pixel text-[9px] sm:text-xs text-amber-200 tracking-wider uppercase">
+              GEORGE // CONCIERGE &amp; CURADOR CINÉFILO
             </span>
           </div>
 
@@ -315,12 +316,12 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
               className={`px-2.5 py-1 border font-vt text-xs sm:text-sm flex items-center gap-1.5 transition cursor-pointer ${
                 showWallManager
                   ? 'bg-amber-900/70 border-amber-400 text-amber-100'
-                  : 'bg-[#170e24] hover:bg-[#231536] border-cyan-700/70 text-cyan-200'
+                  : 'bg-[#170e24] hover:bg-[#231536] border-amber-700/70 text-amber-200'
               }`}
-              title="Controle total: adicionar ou excluir qualquer quadro da parede"
+              title="Controle total: adicionar ou excluir qualquer cartaz da parede"
             >
               <Frame className="w-3.5 h-3.5 text-amber-400" />
-              <span>Quadros da Parede ({publicMovies.length})</span>
+              <span>Em Cartaz ({publicMovies.length})</span>
             </button>
 
             <button
@@ -333,7 +334,7 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
         </div>
 
         {/* Pinned Animated Live Talking Butler Stage Banner (Always visible even when scrolling chat!) */}
-        <div className="shrink-0 flex items-center gap-4 bg-[#0d0814] border-b-2 border-cyan-900/70 px-4 sm:px-5 py-3 shadow-[inset_0_0_30px_rgba(6,182,212,0.12)]">
+        <div className="shrink-0 flex items-center gap-4 bg-[#0d0814] border-b-2 border-amber-900/70 px-4 sm:px-5 py-3 shadow-[inset_0_0_30px_rgba(245,158,11,0.12)]">
           <div className="relative shrink-0">
             <canvas
               ref={portraitCanvasRef}
@@ -343,44 +344,44 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
                 setIsSpeaking(true);
                 setTimeout(() => setIsSpeaking(false), 2600);
               }}
-              title="Clique no George para vê-lo gesticular e falar!"
+              title="Clique no George para vê-lo gesticular com a claquete e falar!"
               className={`w-24 h-20 sm:w-28 sm:h-24 pixelated border-2 bg-black cursor-pointer transition-shadow ${
                 isSpeaking
-                  ? 'border-cyan-400 shadow-[0_0_22px_rgba(56,189,248,0.55)]'
+                  ? 'border-amber-400 shadow-[0_0_22px_rgba(251,191,36,0.55)]'
                   : isLoading
-                  ? 'border-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.45)]'
-                  : 'border-cyan-700/70'
+                  ? 'border-cyan-400 shadow-[0_0_20px_rgba(56,189,248,0.45)]'
+                  : 'border-amber-700/70'
               }`}
             />
             <span
               className={`absolute -bottom-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 font-pixel text-[7px] uppercase tracking-wider border whitespace-nowrap ${
                 isSpeaking
-                  ? 'bg-cyan-950 border-cyan-400 text-cyan-200 animate-pulse'
-                  : isLoading
                   ? 'bg-amber-950 border-amber-400 text-amber-200 animate-pulse'
+                  : isLoading
+                  ? 'bg-cyan-950 border-cyan-400 text-cyan-200 animate-pulse'
                   : 'bg-zinc-950 border-zinc-700 text-zinc-400'
               }`}
             >
               {isSpeaking
                 ? '🗣️ Falando...'
                 : isLoading
-                ? '🧐 Pensando...'
-                : '🕯️ À disposição'}
+                ? '🎬 Curando...'
+                : '🍿 À disposição'}
             </span>
           </div>
 
           <div className="space-y-1">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="font-gothic text-lg sm:text-2xl text-cyan-200">
-                George, o Mordomo Espectral
+              <span className="font-gothic text-lg sm:text-2xl text-amber-200">
+                George, o Concierge Cinéfilo
               </span>
-              <span className="px-2 py-0.5 bg-cyan-950/60 border border-cyan-800/60 font-vt text-xs text-cyan-300">
-                Em serviço desde 1894
+              <span className="px-2 py-0.5 bg-amber-950/60 border border-amber-700/60 font-vt text-xs text-amber-300">
+                Viva a Sétima Arte! 🎬
               </span>
             </div>
             <p className="font-vt text-xs sm:text-sm text-zinc-300 leading-snug">
-              Cuidando de <strong className="text-amber-300">{publicMovies.length} quadros</strong> na parede e{' '}
-              <strong className="text-amber-300">{chosenMovies.length} filmes</strong> no Salão dos Escolhidos. Pergunte <strong className="text-cyan-300">onde assistir cada filme</strong> nos streamings, peça sugestões ou gerencie os quadros!
+              Cuidando de <strong className="text-amber-300">{publicMovies.length} cartazes</strong> no foyer e{' '}
+              <strong className="text-amber-300">{chosenMovies.length} sessões</strong> na Sala VIP. Pergunte <strong className="text-amber-200">onde assistir cada filme</strong> nos streamings, peça sugestões de qualquer gênero ou gerencie os cartazes!
             </p>
           </div>
         </div>
@@ -512,7 +513,7 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
                     {turn.role === 'user' ? (
                       <span className="text-red-300">Aninha &amp; Caldas</span>
                     ) : (
-                      <span className="text-cyan-300">🕯️ George (Mordomo Fantasma)</span>
+                      <span className="text-amber-300">🎬 George (Concierge Cinéfilo)</span>
                     )}
                   </div>
                   <p className="font-serif-horror text-base sm:text-lg leading-relaxed">
@@ -586,9 +587,9 @@ export const ButlerAgentModal: React.FC<ButlerAgentModalProps> = ({
           })}
 
           {isLoading && (
-            <div className="flex items-center gap-2 text-cyan-300 font-vt text-base p-2">
-              <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
-              <span>George está ajustando o monóculo e consultando os grimórios...</span>
+            <div className="flex items-center gap-2 text-amber-300 font-vt text-base p-2">
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+              <span>George está consultando o catálogo e preparando a claquete...</span>
             </div>
           )}
           <div ref={messagesEndRef} />

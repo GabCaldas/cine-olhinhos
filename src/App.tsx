@@ -48,7 +48,7 @@ import {
   Eye,
   Shuffle,
   EyeOff,
-  Skull,
+  Film,
   DoorOpen,
   LayoutGrid,
   Footprints,
@@ -395,7 +395,7 @@ export function App() {
       .filter((m) => m.id !== movieId)
       .map((m, idx) => ({
         ...m,
-        tapeNumber: `QUADRO ${idx + 1} // GALERIA DA MANSÃO`,
+        tapeNumber: `EM CARTAZ #${idx + 1} // CINE OLHINHOS`,
       }));
     const updated = [...remainingRegular, ...secretMovies];
     setMovies(updated);
@@ -459,14 +459,18 @@ export function App() {
 
   const availableTags: Array<HorrorTag | 'TODOS'> = [
     'TODOS',
+    'Animação',
+    'Comédia',
+    'Ficção Científica',
+    'Aventura',
+    'Musical',
+    'Romance',
+    'Drama',
+    'Cult',
+    'Fantasia',
     'Psicológico',
     'Sobrenatural',
-    'Paranormal',
-    'Folk Horror',
-    'Found Footage',
-    'Religioso',
     'Mistério',
-    'Gótico',
   ];
 
   const handleRoulettePick = () => {
@@ -499,37 +503,37 @@ export function App() {
         />
       )}
 
-      {/* TOP NAVIGATION / MANSION ROOMS HUD */}
-      <header className="sticky top-0 z-30 bg-[#070408]/95 backdrop-blur-xs border-b border-[#330c15] px-3 sm:px-6 py-2.5">
+      {/* TOP NAVIGATION / GRAND CINE OLHINHOS HUD */}
+      <header className="sticky top-0 z-30 bg-[#070408]/95 backdrop-blur-xs border-b border-amber-900/50 px-3 sm:px-6 py-2.5">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
           {/* Title */}
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#1f070d] border border-red-800/80 flex items-center justify-center shadow-[0_0_15px_rgba(185,28,28,0.4)]">
-              <Skull className="w-4 h-4 text-red-500" />
+            <div className="w-8 h-8 bg-[#1f070d] border border-amber-500/80 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.35)]">
+              <Film className="w-4 h-4 text-amber-400" />
             </div>
             <div>
               <h1 className="font-gothic text-sm sm:text-base tracking-wider text-white flex items-center gap-2">
-                <span>Lista de filmes de terror extremamente duvidosos para meus oinhos</span>
+                <span>Grand Cine Olhinhos — Uma Lista de Filmes para meus oinhos</span>
               </h1>
-              <p className="font-vt text-xs text-red-400 tracking-wider">
-                Feito com carinho! - Caldas
+              <p className="font-vt text-xs text-amber-300 tracking-wider">
+                Feito com carinho! - Caldas 🍿❤️
               </p>
             </div>
           </div>
 
           {/* Right HUD Controls */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Summon George (The Ghost Butler) */}
+            {/* Summon George (The Cinema Concierge) */}
             <button
               onClick={() => {
                 soundEngine.playRomanticChime();
                 setIsButlerOpen(true);
               }}
-              className="px-3 py-1 bg-[#0b1924] hover:bg-[#102a3d] border border-cyan-500/80 text-cyan-200 font-vt text-sm flex items-center gap-1.5 shadow-[0_0_15px_rgba(6,182,212,0.3)] transition cursor-pointer"
-              title="Conversar com George, o Mordomo Fantasma da Mansão"
+              className="px-3 py-1 bg-[#260c14] hover:bg-[#3d1220] border border-amber-500/80 text-amber-200 font-vt text-sm flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.28)] transition cursor-pointer"
+              title="Conversar com George, o Concierge e Curador Cinéfilo do Cinema"
             >
-              <Bot className="w-4 h-4 text-cyan-400" />
-              <span>🕯️ Mordomo George</span>
+              <Bot className="w-4 h-4 text-amber-400" />
+              <span>🎬 Concierge George</span>
             </button>
 
             {/* Switch between Room 1 (Corridor) and Room 2 (Chosen Movies Hall) */}
@@ -543,13 +547,13 @@ export function App() {
                   ? 'bg-amber-800/90 border-amber-400 text-white shadow-[0_0_18px_rgba(245,158,11,0.4)]'
                   : 'bg-[#211108] hover:bg-[#381c0c] border-amber-700/80 text-amber-200'
               }`}
-              title="Alternar entre o Corredor de Escolha e o Salão dos Filmes Escolhidos"
+              title="Alternar entre o Foyer do Cinema e a Sala VIP dos Filmes Escolhidos"
             >
               <Award className="w-4 h-4 text-amber-300" />
               <span>
                 {activeRoom === 'chosen_hall'
-                  ? '← Voltar ao Corredor'
-                  : `Salão dos Escolhidos (${chosenRecords.length})`}
+                  ? '← Voltar ao Foyer'
+                  : `Sala VIP (${chosenRecords.length})`}
               </span>
             </button>
 
@@ -590,11 +594,11 @@ export function App() {
             <button
               onClick={() => setIsSecretsOpen(true)}
               className="px-2.5 py-1 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 font-vt text-sm flex items-center gap-1.5 transition cursor-pointer"
-              title="Ver mistérios e aparições escondidas no cenário da mansão"
+              title="Ver Easter Eggs dos filmes favoritos escondidos no cinema"
             >
-              <Eye className="w-3.5 h-3.5 text-red-400" />
+              <Eye className="w-3.5 h-3.5 text-amber-400" />
               <span>
-                Segredos ({discoveredEggs.length}/{TOTAL_EASTER_EGGS})
+                Easter Eggs ({discoveredEggs.length}/{TOTAL_EASTER_EGGS})
               </span>
             </button>
 
@@ -684,9 +688,9 @@ export function App() {
 
             {showGridBelow && (
               <section className="max-w-6xl mx-auto px-3 sm:px-6 pt-4 pb-12 animate-fadeIn">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-5 border-b border-red-950 pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-5 border-b border-amber-950 pb-3">
                   <h3 className="font-gothic text-xl sm:text-2xl text-white">
-                    Todos os Quadros da Mansão ({visibleMovies.length})
+                    Todos os Filmes em Cartaz ({visibleMovies.length})
                   </h3>
                   <div className="flex flex-wrap items-center gap-1.5">
                     {availableTags.map((tag) => {

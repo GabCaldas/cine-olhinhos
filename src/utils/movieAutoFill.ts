@@ -8,6 +8,7 @@ export interface AutoFillMovieResult {
   year: number;
   duration: string;
   imdbRating: string;
+  isHorror?: boolean;
   subgenre: string;
   fearLevel: 1 | 2 | 3 | 4 | 5;
   bpm: number;
@@ -406,6 +407,126 @@ const CURATED_HORROR_DB: Array<{
       { platform: 'Apple TV / YouTube', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 9,90)' },
     ],
   },
+  {
+    keywords: ['fantastic mr. fox', 'fantastic mr fox', 'o fantastico sr. raposo', 'fantastico sr raposo'],
+    title: 'O Fantástico Sr. Raposo',
+    originalTitle: 'Fantastic Mr. Fox',
+    year: 2009,
+    duration: '1h 27min',
+    imdbRating: '7.9',
+    director: 'Wes Anderson',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BOGUwYTU4NGEtNDM4MS00NDRjLTkwNmQtOTkwMWMyMjhmMjdlXkEyXkFqcGc@._V1_SX600.jpg',
+    synopsis:
+      'Após doze anos de vida pacata no campo ao lado da esposa, o charmoso Sr. Raposo não resiste aos seus instintos selvagens e planeja o maior roubo de galinhas e cidra da história contra três fazendeiros furiosos — colocando toda a comunidade de animais subterrâneos em uma aventura genial.',
+    streamingPlatforms: [
+      { platform: 'Disney+', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 11,90)' },
+      { platform: 'Prime Video Store', type: 'rent', priceInfo: 'Aluguel Digital' },
+    ],
+  },
+  {
+    keywords: ['megamind', 'megamente'],
+    title: 'Megamente',
+    originalTitle: 'Megamind',
+    year: 2010,
+    duration: '1h 35min',
+    imdbRating: '7.3',
+    director: 'Tom McGrath',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BMTAzMzI0NTMzNDBeQTJeQWpwZ15BbWU3MDM3NTAyOTM@._V1_SX600.jpg',
+    synopsis:
+      'Depois de finalmente derrotar seu arquirrival Metro Man, o brilhante e teatral supervilão Megamente descobre que a vida sem um herói para enfrentar é completamente sem graça. Ele decide criar um novo adversário, mas quando sua criação sai do controle, o próprio Megamente precisa virar o herói de Metro City.',
+    streamingPlatforms: [
+      { platform: 'Prime Video / Globoplay (Telecine)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 9,90)' },
+    ],
+  },
+  {
+    keywords: ['everything everywhere all at once', 'tudo em todo o lugar ao mesmo tempo', 'eeaao'],
+    title: 'Tudo em Todo o Lugar ao Mesmo Tempo',
+    originalTitle: 'Everything Everywhere All at Once',
+    year: 2022,
+    duration: '2h 19min',
+    imdbRating: '7.8',
+    director: 'Daniel Kwan, Daniel Scheinert',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BYTdiOTIyZTQtNmQ1OS00NjZlLWIyMTgtYzk5Y2M3ZDVmMDk1XkEyXkFqcGc@._V1_SX600.jpg',
+    synopsis:
+      'Sobrecarregada com impostos e crises familiares na lavanderia, a imigrante chinesa Evelyn Wang é arrastada para uma aventura insana e emocionante onde só ela pode salvar o multiverso conectando-se com as vidas que poderia ter vivido — inclusive em um universo onde tudo é calmo e elas são apenas duas pedras.',
+    streamingPlatforms: [
+      { platform: 'Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Max (HBO Max)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 14,90)' },
+    ],
+  },
+  {
+    keywords: ['the wild robot', 'robo selvagem', 'robô selvagem'],
+    title: 'Robô Selvagem',
+    originalTitle: 'The Wild Robot',
+    year: 2024,
+    duration: '1h 42min',
+    imdbRating: '8.2',
+    director: 'Chris Sanders',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BZjM2M2E3YzAtZDJjYy00MDhkLThiYmItOGZhNzQ3NTgyZmI0XkEyXkFqcGc@._V1_SX600.jpg',
+    synopsis:
+      'Após um naufrágio, a unidade robótica inteligente ROZZUM 7134 ("Roz") desperta sozinha em uma ilha desabitada. Para sobreviver no ambiente selvagem, ela aprende a língua dos animais da floresta e acaba adotando um pequeno ganso órfão, Bico-Vivo, descobrindo o que significa ter um coração.',
+    streamingPlatforms: [
+      { platform: 'Prime Video / Apple TV', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 19,90)' },
+      { platform: 'Globoplay (Telecine)', type: 'subscription', priceInfo: 'Catálogo / Estreia Telecine' },
+    ],
+  },
+  {
+    keywords: ['my neighbor totoro', 'meu amigo totoro', 'totoro', 'tonari no totoro'],
+    title: 'Meu Amigo Totoro',
+    originalTitle: 'Tonari no Totoro',
+    year: 1988,
+    duration: '1h 26min',
+    imdbRating: '8.1',
+    director: 'Hayao Miyazaki',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BYWM3MDE3YjEtMzIzZC00ODE5LTgxNTItNmUyMTBkM2M2NmNiXkEyXkFqcGc@._V1_SX600.jpg',
+    synopsis:
+      'Duas irmãs pequenas, Satsuki e Mei, mudam-se com o pai para uma antiga casa no interior do Japão para ficar mais perto da mãe hospitalizada. Explorando a floresta vizinha, elas fazem amizade com os espíritos mágicos da natureza e com o gigante, peludo e adorável guardião da floresta: Totoro.',
+    streamingPlatforms: [
+      { platform: 'Netflix', type: 'subscription', priceInfo: 'Incluso na assinatura (Coleção Studio Ghibli)' },
+    ],
+  },
+  {
+    keywords: ['teen beach movie', 'teen beach'],
+    title: 'Teen Beach Movie',
+    originalTitle: 'Teen Beach Movie',
+    year: 2013,
+    duration: '1h 49min',
+    imdbRating: '6.0',
+    director: 'Jeffrey Hornaday',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BMjE3MDA3NzI4MF5BMl5BanBnXkFtZTcwNjE5Mzc2OQ@@._V1_SX600.jpg',
+    synopsis:
+      'No último dia de verão, o casal de surfistas Brady e Mack pega uma onda gigante misteriosa com uma prancha mágica e acaba transportado para dentro de um musical clássico de praia dos anos 1960, "Onda Sublime Onda", onde surfistas e motoqueiros disputam a barraca da praia entre números musicais contagiantes.',
+    streamingPlatforms: [
+      { platform: 'Disney+', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+    ],
+  },
+  {
+    keywords: ['pitch perfect', 'a escolha perfeita'],
+    title: 'A Escolha Perfeita',
+    originalTitle: 'Pitch Perfect',
+    year: 2012,
+    duration: '1h 52min',
+    imdbRating: '7.1',
+    director: 'Jason Moore',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BMTcyMTMzNzE5N15BMl5BanBnXkFtZTcwNzg5NjM5Nw@@._V1_SX600.jpg',
+    synopsis:
+      'Beca, uma caloura rebelde apaixonada por mixagens musicais, é convencida a entrar para as Barden Bellas, o grupo feminino de canto a capella da universidade. Com arranjos ousados e o icônico teste do copo ("Cup Song"), ela tenta levar o grupo até a grande final nacional.',
+    streamingPlatforms: [
+      { platform: 'Netflix / Prime Video', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Globoplay (Telecine)', type: 'subscription', priceInfo: 'Incluso na assinatura' },
+      { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 9,90)' },
+    ],
+  },
 ];
 
 function normalizeStr(s: string): string {
@@ -539,16 +660,16 @@ export async function enrichMovieSynopsisAndStreamingWithAI(params: {
     };
   }
 
-  const systemInstruction = `Você é um curador especialista em cinema de terror no Brasil.
+  const systemInstruction = `Você é um curador especialista em cinema no Brasil (todos os gêneros: animação, comédia, romance, ficção científica, musical, drama e terror).
 Responda APENAS com um JSON válido contendo:
-1. "synopsis": A sinopse real do enredo (a história do que acontece no filme) em português do Brasil, de forma envolvente, sombria e SEM SPOILERS do final, em 2 a 3 frases (entre 160 e 340 caracteres). PROIBIDO começar com ficha técnica ("X é um filme dirigido por...") e PROIBIDO escrever biografia de atores.
+1. "synopsis": A sinopse real do enredo (a história do que acontece no filme) em português do Brasil, de forma envolvente e SEM SPOILERS do final, em 2 a 3 frases (entre 160 e 340 caracteres). PROIBIDO começar com ficha técnica ("X é um filme dirigido por...") e PROIBIDO escrever biografia de atores.
 2. "streamingPlatforms": Lista de 2 a 3 plataformas onde o filme está disponível no Brasil, diferenciando claramente se está INCLUSO NA ASSINATURA ("type": "subscription") ou se é por ALUGUEL / COMPRA DIGITAL ("type": "rent").
 
 Formato exato:
 {
   "synopsis": "história do filme em português...",
   "streamingPlatforms": [
-    { "platform": "Nome da Plataforma (ex: Max, Prime Video, Netflix, MUBI, Looke)", "type": "subscription", "priceInfo": "Incluso na assinatura" },
+    { "platform": "Nome da Plataforma (ex: Netflix, Disney+, Max, Prime Video, MUBI)", "type": "subscription", "priceInfo": "Incluso na assinatura" },
     { "platform": "Apple TV / Prime Video Store", "type": "rent", "priceInfo": "Aluguel Digital (~R$ 14,90)" }
   ]
 }`;
@@ -558,7 +679,7 @@ Formato exato:
     params.rawPlot.trim().length > 35 &&
     !/\b(é uma? atriz|é um ator|conhecid[oa] principalmente por seu papel)\b/i.test(params.rawPlot);
 
-  const userPrompt = `Filme de terror: "${params.title}"${
+  const userPrompt = `Filme: "${params.title}"${
     params.originalTitle && params.originalTitle !== params.title
       ? ` (Título original: "${params.originalTitle}")`
       : ''

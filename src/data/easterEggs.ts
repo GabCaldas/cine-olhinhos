@@ -1,77 +1,77 @@
 import { EasterEggId, EasterEggInfo } from '../types/horror';
 
 export const EASTER_EGGS: Record<EasterEggId, EasterEggInfo> = {
-  jason_mask: {
-    id: 'jason_mask',
-    title: 'Relíquia na Panóplia de Entrada',
-    location: 'Parede de Entrada do Corredor',
-    hint: 'Há um escudo de madeira escura pendurado logo depois da porta principal...',
-    discoveryText:
-      'Ao tocar no suporte de madeira, a máscara desgastada parece respirar no escuro e a lâmina presa atrás dela vibra contra a parede.',
-  },
-  ghostface: {
-    id: 'ghostface',
-    title: 'Vulto Atrás da Cortina & Telefone Antigo',
-    location: 'Janela Gótica com Cortinas de Veludo',
-    hint: 'O telefone sobre a mesinha lateral pisca perto de uma cortina pesada que se mexe sozinha...',
-    discoveryText:
-      'O telefone toca estridente! Quando vocês puxam o veludo da janela, uma figura encapuzada recua rapidamente para a escuridão com o brilho de uma lâmina.',
-  },
   hidden_minion: {
     id: 'hidden_minion',
-    title: 'Intruso Amarelo na Portinhola do Rodapé',
-    location: 'Alçapão Secreto no Rodapé de Madeira',
-    hint: 'Duas lentes metálicas redondas estão espiando por uma fresta solta na madeira do rodapé...',
+    title: 'O Intruso Amarelo na Pipoqueira Retrô',
+    location: 'Carrinho de Pipoca Dourado na Entrada',
+    hint: 'Duas lentes metálicas redondas estão espiando de dentro do vidro quente da máquina de pipoca...',
     discoveryText:
-      'A tábua solta do rodapé se abre! Uma criaturinha amarela de óculos e macacão dá um pulo segurando uma banana, sussurra "Bello!" e se tranca de volta na parede.',
+      'A tampa da pipoqueira se levanta! Um Minion de óculos e macacão pula do meio das pipocas segurando uma banana, grita "Bello! Banana!" e mergulha de volta no milho!',
   },
-  pennywise_balloon: {
-    id: 'pennywise_balloon',
-    title: 'O Balão Preso na Grade do Chão',
-    location: 'Ralo de Ferro no Assoalho',
-    hint: 'Um fio vermelho está amarrado nas barras de ferro de um ralo escuro no chão...',
+  fantastic_mr_fox: {
+    id: 'fantastic_mr_fox',
+    title: 'O Fantástico Sr. Raposo (Assobio & Click-Click)',
+    location: 'Adega de Cidra de Maçã Dourada',
+    hint: 'Uma garrafa de cidra dourada brilha perto de uma cauda felpuda cor de laranja e um terno de veludo mostarda...',
     discoveryText:
-      'Dois olhos amarelos se abrem na escuridão embaixo do assoalho enquanto um balão vermelho sobe lentamente do ralo e flutua até o teto.',
+      'O Fantástico Sr. Raposo ajeita o paletó de veludo cotelê, olha para vocês dois, dá seu clássico assobio seguido de dois estalos de língua (*fi-fiu... click-click!*) e brinda com cidra!',
   },
-  jigsaw_billy: {
-    id: 'jigsaw_billy',
-    title: 'O Triciclo na Porta da Despensa',
-    location: 'Porta Entreaberta com Corrente',
-    hint: 'Uma fresta de luz vermelha escapa por baixo de uma porta trancada com corrente...',
+  megamind: {
+    id: 'megamind',
+    title: 'Megamente: "Diferença? APRESENTAÇÃO!"',
+    location: 'Cabine de Raios Azuis & Holofote',
+    hint: 'Um dispositivo azul futurista com uma capa preta de gola alta pisca com energia elétrica na parede...',
     discoveryText:
-      'A porta range e se abre mais um pouco. Do breu do quarto vazio, um pequeno triciclo vermelho avança sozinho até a soleira com uma risada metálica.',
+      'Luzes de rock e relâmpagos azuis iluminam o corredor! Megamente surge flutuando com sua capa preta e o Raio de Desidratação: "Qual a diferença entre um vilão e um supervilão? APRESENTAÇÃO!"',
   },
-  shining_twins: {
-    id: 'shining_twins',
-    title: 'Aparição no Espelho Veneziano',
-    location: 'Grande Espelho de Moldura Dourada',
-    hint: 'O espelho antigo na parede parece refletir mais do que apenas o corredor vazio...',
+  eeaao_rocks: {
+    id: 'eeaao_rocks',
+    title: 'As Duas Pedras do Multiverso (EEAAO)',
+    location: 'Terrário do Deserto Silencioso',
+    hint: 'Duas pedras imóveis repousam lado a lado em um pequeno cânion silencioso, com um par de olhinhos plásticos por perto...',
     discoveryText:
-      'Ao limpar o vidro embaçado, o reflexo mostra duas figuras idênticas de mãos dadas paradas no fundo do corredor — mas quando vocês olham para trás, não há ninguém.',
+      'O som ao redor silencia em paz absoluta. Dois olhinhos plásticos (googly eyes) se abrem na pedra da esquerda e uma legenda amarela aparece no ar: "Aqui tudo é calmo. Apenas seja uma pedra."',
   },
-  cursed_portrait: {
-    id: 'cursed_portrait',
-    title: 'O Retrato que Observa a Galeria',
-    location: 'Pintura a Óleo sobre o Candelabro',
-    hint: 'Uma pintura antiga e austera parece mudar de expressão quando a luz das velas oscila...',
+  wild_robot: {
+    id: 'wild_robot',
+    title: 'Roz & Bico-Vivo (Robô Selvagem)',
+    location: 'Jardim Interno Iluminado do Cinema',
+    hint: 'Entre flores silvestres e musgo verde, um chassi metálico redondo reflete a luz suave ao lado de uma pena de ganso...',
     discoveryText:
-      'A moldura entorta sozinha no prego e a tinta escura se desfaz, revelando um rosto pálido coberto por um véu negro que acompanha os passos de vocês.',
+      'Os olhos circulares de Roz (ROZZUM 7134) se acendem com carinho! Uma borboleta pousa em sua mão metálica enquanto o pequeno gansinho Bico-Vivo bate as asas em seu ombro.',
   },
-  crt_tv: {
-    id: 'crt_tv',
-    title: 'Transmissão Noturna no Aparador',
-    location: 'Televisão de Tubo sobre o Móvel Antigo',
-    hint: 'Uma televisão desligada no fim da galeria emite um chiado elétrico bem baixinho...',
+  totoro: {
+    id: 'totoro',
+    title: 'Meu Amigo Totoro no Ponto de Ônibus',
+    location: 'Placa de Ponto de Ônibus & Guarda-Chuva',
+    hint: 'Uma placa redonda de ônibus e um guarda-chuva vermelho encostado na parede escondem pequenas bolinhas pretas de fuligem...',
     discoveryText:
-      'O tubo liga sozinho em estática máxima mostrando a borda de um poço de pedra na chuva, enquanto água começa a pingar do vidro para o tapete.',
+      'Poeirinhas mágicas (Susuwatari) saem correndo e o grande e fofinho Totoro aparece segurando uma folha verde na cabeça e abrindo um sorriso gigante sob o guarda-chuva!',
+  },
+  teen_beach: {
+    id: 'teen_beach',
+    title: 'Teen Beach Movie: Surfistas vs. Motoqueiros',
+    location: 'Prancha de Surf Anos 60 & Jaqueta de Couro',
+    hint: 'Uma prancha de surf listrada retrô está encostada ao lado de uma jaqueta preta de motoqueiro dos anos 60...',
+    discoveryText:
+      'Uma onda tropical neon brilha pela parede ao som de guitarras de surf rock! A prancha mágica de Brady e Mack reluz entre o sol da praia e o estilo de "Cruisin\' for a Bruisin\'"!',
+  },
+  pitch_perfect: {
+    id: 'pitch_perfect',
+    title: 'Pitch Perfect: O Ritmo do Cup Song',
+    location: 'Bancada Acústica das Barden Bellas',
+    hint: 'Um copo plástico azul solitário está virado para baixo ao lado de um microfone prateado com laço amarelo...',
+    discoveryText:
+      'Clap-clap, tap-tap-tap! O copo bate no balcão no ritmo perfeito de "When I\'m Gone" enquanto o microfone das Barden Bellas solta notas musicais douradas em harmonia a capella!',
   },
   secret_vhs: {
     id: 'secret_vhs',
-    title: 'O Compartimento do Relógio Parado',
-    location: 'Relógio de Pêndulo às 03:33',
-    hint: 'O grande relógio de madeira no fim do corredor parou às 03:33 e tem uma fechadura vermelha na base...',
+    title: 'O Projetor 35mm e a Bobina Dourada #00',
+    location: 'Projetor Cinematográfico Clássico no Fim da Galeria',
+    hint: 'O grande projetor de rolo 35mm no final do corredor guarda uma bobina dourada trancada na base...',
     discoveryText:
-      'A portinhola do pêndulo se destranca! Dentro dela estava escondida a Fita #00, fazendo surgir um quadro secreto inédito no final do corredor!',
+      'As bobinas de 35mm começam a girar em luz dourada! Dentro do compartimento secreto estava guardada a Bobina #00, revelando o Quadro Secreto Especial de Caldas & Aninha no final do corredor!',
   },
 };
 

@@ -8,6 +8,195 @@ export interface HorrorAIResult {
   tags: HorrorTag[];
   subgenre: string;
   curseWhisper: string;
+  isHorror: boolean;
+}
+
+const KNOWN_NON_HORROR_KEYWORDS = [
+  'fantastic mr. fox',
+  'fantastico sr. raposo',
+  'fantastico sr raposo',
+  'megamind',
+  'megamente',
+  'everything everywhere',
+  'tudo em todo o lugar',
+  'wild robot',
+  'robo selvagem',
+  'totoro',
+  'teen beach',
+  'pitch perfect',
+  'escolha perfeita',
+  'minions',
+  'meu malvado favorito',
+  'shrek',
+  'ratatouille',
+  'wall-e',
+  'up altas aventuras',
+  'divertida mente',
+  'inside out',
+  'coco',
+  'viva a vida e uma festa',
+  'la la land',
+  'questao de tempo',
+  'about time',
+  'spirited away',
+  'viagem de chihiro',
+  'howls moving castle',
+  'castelo animado',
+  'spider-verse',
+  'aranhaverso',
+  'interstellar',
+  'interestelar',
+  'whiplash',
+  'grand budapest',
+  'truman show',
+  'show de truman',
+  '10 coisas que eu odeio',
+  'como perder um homem',
+  'diario de uma paixao',
+  'orgulho e preconceito',
+  'mamma mia',
+  'high school musical',
+];
+
+const KNOWN_HORROR_KEYWORDS = [
+  'frailty',
+  'mao do diabo',
+  'dark and the wicked',
+  'saccharine',
+  'frewaka',
+  'jacob',
+  'alucinacoes do passado',
+  'heresy',
+  'witte wieven',
+  'the fly',
+  'a mosca',
+  'exorcist',
+  'hereditario',
+  'hereditary',
+  'the witch',
+  'vvitch',
+  'a bruxa',
+  'fale comigo',
+  'talk to me',
+  'iluminado',
+  'shining',
+  'invocacao do mal',
+  'conjuring',
+  'o chamado',
+  'the ring',
+  'autopsia',
+  'jane doe',
+  'sorria',
+  'smile',
+  'midsommar',
+  'substancia',
+  'substance',
+  'sinister',
+  'a entidade',
+  'it follows',
+  'corrente do mal',
+  'babadook',
+  'terrifier',
+  'scream',
+  'panico',
+  'insidious',
+  'sobrenatural',
+  'nosferatu',
+  'longlegs',
+  'alien',
+  'halloween',
+  'sexta-feira 13',
+  'friday the 13th',
+  'jogos mortais',
+  'saw',
+  'it a coisa',
+  'evil dead',
+  'a morte do demonio',
+  'actividad paranormal',
+  'atividade paranormal',
+  'cemiterio maldito',
+  'pet sematary',
+  'corra',
+  'get out',
+  'us',
+  'nope',
+  'um lugar silencioso',
+  'quiet place',
+  'blair witch',
+];
+
+export function isHorrorMovie(movie: {
+  title?: string;
+  originalTitle?: string;
+  subgenre?: string;
+  synopsis?: string;
+  tags?: string[];
+  isHorror?: boolean;
+  isSecret?: boolean;
+}): boolean {
+  if (movie.isSecret) return false;
+  if (typeof movie.isHorror === 'boolean') return movie.isHorror;
+
+  const combinedTitle = `${movie.title || ''} ${movie.originalTitle || ''}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (KNOWN_NON_HORROR_KEYWORDS.some((k) => combinedTitle.includes(k))) {
+    return false;
+  }
+  if (KNOWN_HORROR_KEYWORDS.some((k) => combinedTitle.includes(k))) {
+    return true;
+  }
+
+  const sub = (movie.subgenre || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  if (
+    sub.includes('animacao') ||
+    sub.includes('comedia') ||
+    sub.includes('musical') ||
+    sub.includes('romance') ||
+    sub.includes('aventura') ||
+    sub.includes('familia')
+  ) {
+    return false;
+  }
+
+  if (
+    sub.includes('terror') ||
+    sub.includes('horror') ||
+    sub.includes('slasher') ||
+    sub.includes('sobrenatural') ||
+    sub.includes('folk') ||
+    sub.includes('ocult') ||
+    sub.includes('paranormal')
+  ) {
+    return true;
+  }
+
+  const full = `${combinedTitle} ${sub} ${(movie.synopsis || '').toLowerCase()}`
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  const horrorWords = [
+    'terror',
+    'horror',
+    'assombra',
+    'demon',
+    'exorcis',
+    'maldic',
+    'entidade',
+    'pesadelo',
+    'slasher',
+    'macabr',
+    'ocult',
+    'possess',
+    'sobrenatural',
+  ];
+  return horrorWords.some((w) => full.includes(w));
 }
 
 /**
@@ -323,6 +512,70 @@ export function analyzeMovieHorrorAI(params: {
   const hasHorrorDirector = ACCLAIMED_HORROR_DIRECTORS.some((d) =>
     fullText.includes(d)
   );
+
+  // Check if this is a Non-Horror Cinema movie!
+  const detectedHorror =
+    Boolean(benchmark) ||
+    hasHorrorDirector ||
+    KNOWN_HORROR_KEYWORDS.some((k) => titleNorm.includes(k)) ||
+    (/\b(horror|terror|slasher|thriller sobrenatural)\b/i.test(params.genre || '') &&
+      !KNOWN_NON_HORROR_KEYWORDS.some((k) => titleNorm.includes(k))) ||
+    (superHits + visceralHits + psychHits >= 2 &&
+      mildHits === 0 &&
+      !KNOWN_NON_HORROR_KEYWORDS.some((k) => titleNorm.includes(k)));
+
+  if (!detectedHorror) {
+    // CINÊMETRO AI MODE (Non-Horror Movies: Animation, Comedy, Musical, Sci-Fi, Romance, Drama, Adventure)
+    const cineTags: HorrorTag[] = [];
+    if (/animac|animation|raposo|fox|megamind|megamente|totoro|ghibli|robo selvagem|wild robot|minion|pixar|dreamworks/i.test(fullText)) {
+      cineTags.push('Animação');
+    }
+    if (/comedia|comedy|funny|engracad|raposo|megamind|megamente|pitch perfect|escolha perfeita|minion/i.test(fullText)) {
+      cineTags.push('Comédia');
+    }
+    if (/musical|musica|cant|banda|surf|teen beach|pitch perfect|escolha perfeita|a capella|barden/i.test(fullText)) {
+      cineTags.push('Musical');
+    }
+    if (/ficcao|sci-fi|multivers|everything everywhere|tudo em todo|robo|robot|espac|futur/i.test(fullText)) {
+      cineTags.push('Ficção Científica');
+    }
+    if (/aventura|adventure|jornada|ilha|floresta|viagem/i.test(fullText)) {
+      cineTags.push('Aventura');
+    }
+    if (/romanc|amor|paixao|casal|love/i.test(fullText)) {
+      cineTags.push('Romance');
+    }
+    if (/fantasia|magia|totoro|espiritos da floresta/i.test(fullText)) {
+      cineTags.push('Fantasia');
+    }
+    if (/drama|familia|emocion/i.test(fullText)) {
+      cineTags.push('Drama');
+    }
+    if (cineTags.length === 0) {
+      cineTags.push('Cult', 'Aventura', 'Comédia');
+    }
+    const uniqueCineTags = Array.from(new Set(cineTags)).slice(0, 3) as HorrorTag[];
+    const cineSubgenre = `${uniqueCineTags[0]}${uniqueCineTags[1] ? ` & ${uniqueCineTags[1]}` : ''}`;
+
+    const cineBreakdown: HorrorAIBreakdown = {
+      psychological: 92, // Emoção & Coração
+      supernatural: 90,  // Carisma & Humor
+      tension: 94,       // Direção & Visual
+      visceral: 89,      // Ritmo & Trilha Sonora
+    };
+
+    return {
+      fearLevel: 5,
+      bpm: 96,
+      aiVerdict: `Cinêmetro IA (94% de Encanto • Sessão Pipoca VIP): Obra-prima de ${cineSubgenre.toLowerCase()} cheia de carisma, visual marcante e trilha sonora perfeita para assistir juntinhos no Grand Cine Olhinhos!`,
+      aiBreakdown: cineBreakdown,
+      tags: uniqueCineTags,
+      subgenre: cineSubgenre,
+      curseWhisper: 'PREPARE A PIPOCA: SESSÃO ESPECIAL NO GRAND CINE OLHINHOS!',
+      isHorror: false,
+    };
+  }
+
   const isRatedMature =
     /18|16|r\b|nc-17|tv-ma|unrated/i.test(params.advisoryRating || '') ||
     visceralHits >= 2 ||
@@ -452,5 +705,6 @@ export function analyzeMovieHorrorAI(params: {
     tags: uniqueTags,
     subgenre,
     curseWhisper: whispersByLevel[fearLevel],
+    isHorror: true,
   };
 }

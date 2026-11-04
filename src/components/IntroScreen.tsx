@@ -4,10 +4,9 @@ import {
   drawAninhaPixelSprite,
   drawCaldasPixelSprite,
   drawPixelHeart,
-  drawStickRune,
 } from '../utils/pixelSprites';
 import { soundEngine } from '../utils/soundEngine';
-import { Volume2, VolumeX, DoorOpen } from 'lucide-react';
+import { Volume2, VolumeX, Film } from 'lucide-react';
 
 interface IntroScreenProps {
   coupleConfig: CoupleConfig;
@@ -24,17 +23,17 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
   onEnterNight,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isEnteringMansion, setIsEnteringMansion] = useState<boolean>(false);
+  const [isEnteringCinema, setIsEnteringCinema] = useState<boolean>(false);
   const [isDoorHovered, setIsDoorHovered] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(soundEngine.getMuted());
 
   const isEnteringRef = useRef<boolean>(false);
-  isEnteringRef.current = isEnteringMansion;
+  isEnteringRef.current = isEnteringCinema;
 
   const isDoorHoveredRef = useRef<boolean>(false);
   isDoorHoveredRef.current = isDoorHovered;
 
-  // Full-screen Pixel Art Mansion Exterior with Caldas & Aninha standing in front of the door!
+  // Full-screen Pixel Art Retro Cinema Palace Exterior with Caldas & Aninha on the Red Carpet!
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -43,125 +42,171 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
 
     let animId: number;
     let frame = 0;
-    let enterProgress = 0; // 0 -> 100 as doors open and couple walks inside
+    let enterProgress = 0;
 
-    const rainDrops = Array.from({ length: 95 }, () => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      speed: 2.8 + Math.random() * 1.6,
-      len: 4 + Math.floor(Math.random() * 4),
-    }));
-
-    const fogBands = Array.from({ length: 12 }, (_, i) => ({
-      x: i * 38,
-      y: 138 + (i % 3) * 14,
-      w: 62 + (i % 4) * 16,
-      h: 11 + (i % 2) * 6,
-      speed: 0.14 + (i % 3) * 0.05,
+    const stars = Array.from({ length: 65 }, (_, i) => ({
+      x: (i * 59 + 17) % W,
+      y: (i * 29 + 7) % 125,
+      size: i % 5 === 0 ? 2 : 1,
+      phase: i * 13,
     }));
 
     const render = () => {
       frame++;
       if (isEnteringRef.current) {
-        enterProgress = Math.min(100, enterProgress + 1.15);
+        enterProgress = Math.min(100, enterProgress + 1.25);
       }
 
-      const isLightning = !reducedMotion && (frame % 260 === 0 || frame % 260 === 3);
-
-      // 1. Night Sky & Blood Moon
-      const skyGrad = ctx.createLinearGradient(0, 0, 0, 155);
-      skyGrad.addColorStop(0, isLightning ? '#3f1521' : '#040307');
-      skyGrad.addColorStop(0.55, '#100811');
-      skyGrad.addColorStop(1, '#1a0f18');
+      // 1. Starry Midnight-Blue Cinema Sky
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, 152);
+      skyGrad.addColorStop(0, '#040711');
+      skyGrad.addColorStop(0.55, '#0b132b');
+      skyGrad.addColorStop(1, '#1d1836');
       ctx.fillStyle = skyGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // Crimson Moon
-      const moonX = 72;
-      const moonY = 36;
-      const moonHalo = ctx.createRadialGradient(moonX, moonY, 5, moonX, moonY, 34);
-      moonHalo.addColorStop(0, 'rgba(185, 28, 28, 0.35)');
-      moonHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');
-      ctx.fillStyle = moonHalo;
-      ctx.fillRect(moonX - 36, moonY - 36, 72, 72);
-
-      ctx.fillStyle = '#dfd6ce';
-      ctx.fillRect(moonX - 9, moonY - 9, 18, 18);
-      ctx.fillRect(moonX - 11, moonY - 7, 22, 14);
-      ctx.fillRect(moonX - 7, moonY - 11, 14, 22);
-      ctx.fillStyle = '#b8aba0';
-      ctx.fillRect(moonX - 5, moonY - 4, 4, 3);
-      ctx.fillRect(moonX + 2, moonY + 2, 5, 4);
-
-      // Distant Dead Forest Silhouette
-      ctx.fillStyle = '#090c0b';
-      for (let tx = 0; tx < W; tx += 9) {
-        const th = 34 + ((tx * 19) % 26);
-        ctx.fillRect(tx, 152 - th, 7, th);
-      }
-
-      // 2. The Imposing Victorian Mansion directly behind the couple
-      const mx = 116;
-      const my = 22;
-
-      // Mansion Wings & Central Tower
-      ctx.fillStyle = '#120f17';
-      ctx.fillRect(mx, my + 30, 148, 96);
-      ctx.fillRect(mx - 14, my + 38, 28, 88);
-      ctx.fillRect(mx + 134, my + 38, 28, 88);
-      ctx.fillRect(mx + 42, my + 8, 64, 118);
-
-      // Steep Gothic Roofs
-      ctx.fillStyle = '#1d1421';
-      for (let r = 0; r < 22; r++) {
-        ctx.fillRect(mx + 36 + r, my + 8 - r, 76 - r * 2, 1);
-      }
-      for (let r = 0; r < 15; r++) {
-        ctx.fillRect(mx - 16 + r, my + 38 - r, 32 - r * 2, 1);
-        ctx.fillRect(mx + 132 + r, my + 38 - r, 32 - r * 2, 1);
-      }
-
-      // Upper Windows with eerie warm/crimson light & passing shadow
-      const winXList = [mx + 12, mx + 64, mx + 116];
-      winXList.forEach((wx, idx) => {
-        const wy = my + 48;
-        ctx.fillStyle = idx === 1 ? '#5c1916' : '#1e1926';
-        ctx.fillRect(wx, wy, 18, 24);
-        // Shadow figure passing 2nd floor center window
-        if (idx === 1 && frame % 180 > 110) {
-          const sx = wx + 3 + Math.floor(((frame % 180) - 110) / 7);
-          ctx.fillStyle = '#050307';
-          ctx.fillRect(sx, wy + 5, 5, 19);
-          ctx.fillStyle = '#ef4444';
-          ctx.fillRect(sx + 1, wy + 7, 1, 1);
-          ctx.fillRect(sx + 3, wy + 7, 1, 1);
-        }
-        ctx.fillStyle = '#09070c';
-        ctx.fillRect(wx + 8, wy, 2, 24);
-        ctx.fillRect(wx, wy + 11, 18, 2);
+      // Twinkling Stars
+      stars.forEach((s) => {
+        const twinkle = Math.sin((frame + s.phase) * 0.06) > 0.2;
+        ctx.fillStyle = twinkle ? '#fef08a' : '#64748b';
+        ctx.fillRect(s.x, s.y, s.size, s.size);
       });
 
-      // Mansion Grand Entrance Porch & Steps
-      ctx.fillStyle = '#211a28';
-      ctx.fillRect(mx + 34, my + 80, 80, 5); // Porch roof
-      ctx.fillRect(mx + 38, my + 85, 5, 42); // Left column
-      ctx.fillRect(mx + 105, my + 85, 5, 42); // Right column
+      // Premiere Searchlight Beams sweeping the night sky
+      if (!reducedMotion) {
+        ctx.save();
+        const beamAngle1 = Math.sin(frame * 0.022) * 0.28;
+        const beamAngle2 = -Math.sin(frame * 0.018 + 1.2) * 0.28;
 
-      // Grand Mansion Double Oak Doors (Center X = 190!)
+        ctx.fillStyle = 'rgba(253, 224, 71, 0.06)';
+        ctx.beginPath();
+        ctx.moveTo(75, 148);
+        ctx.lineTo(75 + Math.sin(beamAngle1 - 0.14) * 190, 0);
+        ctx.lineTo(75 + Math.sin(beamAngle1 + 0.14) * 190, 0);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(305, 148);
+        ctx.lineTo(305 + Math.sin(beamAngle2 - 0.14) * 190, 0);
+        ctx.lineTo(305 + Math.sin(beamAngle2 + 0.14) * 190, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Warm Golden Full Moon
+      const moonX = 58;
+      const moonY = 34;
+      const moonHalo = ctx.createRadialGradient(moonX, moonY, 4, moonX, moonY, 30);
+      moonHalo.addColorStop(0, 'rgba(251, 191, 36, 0.32)');
+      moonHalo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = moonHalo;
+      ctx.fillRect(moonX - 32, moonY - 32, 64, 64);
+
+      ctx.fillStyle = '#fef3c7';
+      ctx.fillRect(moonX - 8, moonY - 8, 16, 16);
+      ctx.fillRect(moonX - 10, moonY - 6, 20, 12);
+      ctx.fillRect(moonX - 6, moonY - 10, 12, 20);
+
+      // Distant City Skyline & Warm Streetlights
+      ctx.fillStyle = '#090d1a';
+      for (let bx = 0; bx < W; bx += 22) {
+        const bh = 28 + ((bx * 17) % 32);
+        ctx.fillRect(bx, 148 - bh, 18, bh);
+        ctx.fillStyle = '#fde047';
+        if (bx < 90 || bx > 280) {
+          ctx.fillRect(bx + 4, 148 - bh + 6, 2, 3);
+          ctx.fillRect(bx + 10, 148 - bh + 12, 2, 3);
+        }
+        ctx.fillStyle = '#090d1a';
+      }
+
+      // 2. THE GRAND RETRO CINEMA PALACE ("GRAND CINE OLHINHOS")
+      const cx = 98;
+      const cy = 20;
+      const cw = 184;
+
+      // Art Deco Stepped Facade Wings & Central Tower
+      ctx.fillStyle = '#161224';
+      ctx.fillRect(cx, cy + 28, cw, 100);
+      ctx.fillStyle = '#1e1630';
+      ctx.fillRect(cx + 34, cy + 8, cw - 68, 120);
+      ctx.fillRect(cx + 56, cy - 2, cw - 112, 12);
+
+      // Gold Art Deco Vertical Finials & Trim
+      ctx.fillStyle = '#d97706';
+      ctx.fillRect(cx, cy + 26, cw, 2);
+      ctx.fillRect(cx + 34, cy + 6, cw - 68, 2);
+      ctx.fillRect(cx + 8, cy + 32, 3, 96);
+      ctx.fillRect(cx + cw - 11, cy + 32, 3, 96);
+      ctx.fillRect(cx + 42, cy + 12, 3, 62);
+      ctx.fillRect(cx + cw - 45, cy + 12, 3, 62);
+
+      // Illuminated Neon Film Reel Crest at Top of Tower
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(182, cy + 12, 16, 16);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(185, cy + 15, 3, 3);
+      ctx.fillRect(192, cy + 15, 3, 3);
+      ctx.fillRect(185, cy + 22, 3, 3);
+      ctx.fillRect(192, cy + 22, 3, 3);
+
+      // Grand Illuminated Cinema Marquee above the entrance!
+      const mqX = cx + 18;
+      const mqY = cy + 54;
+      const mqW = cw - 36;
+      const mqH = 24;
+
+      // Marquee Outer Gold Frame
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(mqX - 2, mqY - 2, mqW + 4, mqH + 4);
+      ctx.fillStyle = '#fef3c7';
+      ctx.fillRect(mqX + 2, mqY + 2, mqW - 4, mqH - 4);
+
+      // Chasing Golden Marquee Bulbs around the border
+      for (let bx = mqX; bx <= mqX + mqW - 2; bx += 6) {
+        const lit = (Math.floor(frame / 8) + bx) % 2 === 0;
+        ctx.fillStyle = lit ? '#fbbf24' : '#92400e';
+        ctx.fillRect(bx, mqY - 2, 2, 2);
+        ctx.fillRect(bx, mqY + mqH, 2, 2);
+      }
+
+      // Pixel Marquee Bars inside the glowing white board ("CINE OLHINHOS • EM CARTAZ")
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(mqX + 14, mqY + 6, mqW - 28, 3);
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(mqX + 26, mqY + 12, mqW - 52, 2);
+      ctx.fillRect(mqX + 36, mqY + 16, mqW - 72, 2);
+
+      // Left & Right "EM CARTAZ" Illuminated Poster Display Cases on the Facade
+      [cx + 16, cx + cw - 42].forEach((pxBox, idx) => {
+        const pyBox = cy + 88;
+        ctx.fillStyle = '#b45309';
+        ctx.fillRect(pxBox, pyBox, 26, 34);
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(pxBox + 2, pyBox + 2, 22, 30);
+        // Mini pixel poster art inside display case
+        ctx.fillStyle = idx === 0 ? '#0284c7' : '#d97706';
+        ctx.fillRect(pxBox + 4, pyBox + 4, 18, 26);
+        ctx.fillStyle = '#fef08a';
+        ctx.fillRect(pxBox + 7, pyBox + 8, 12, 8);
+      });
+
+      // Grand Cinema Double Velvet & Brass Doors (Center X = 190)
       const doorX = 172;
-      const doorY = my + 86;
+      const doorY = cy + 84;
       const doorW = 36;
-      const doorH = 42;
+      const doorH = 44;
 
-      // Glowing red/amber mansion interior corridor behind the doors!
-      const interiorGlow = ctx.createLinearGradient(doorX, doorY, doorX, doorY + doorH);
-      interiorGlow.addColorStop(0, '#450a0a');
-      interiorGlow.addColorStop(0.6, '#991b1b');
-      interiorGlow.addColorStop(1, '#d97706');
-      ctx.fillStyle = interiorGlow;
+      // Warm Golden & Crimson Cinema Lobby Glow behind the doors
+      const lobbyGlow = ctx.createLinearGradient(doorX, doorY, doorX, doorY + doorH);
+      lobbyGlow.addColorStop(0, '#78350f');
+      lobbyGlow.addColorStop(0.5, '#d97706');
+      lobbyGlow.addColorStop(1, '#fef08a');
+      ctx.fillStyle = lobbyGlow;
       ctx.fillRect(doorX, doorY, doorW, doorH);
 
-      // Calculate how wide open the doors are (hover = ajar 4px, entering = fully open 32px)
       const openPx = isEnteringRef.current
         ? Math.min(32, Math.floor(enterProgress * 0.48))
         : isDoorHoveredRef.current
@@ -169,130 +214,108 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
         : 0;
 
       const halfDoor = Math.max(2, Math.floor((doorW - openPx) / 2));
-      // Left & Right heavy oak doors
-      ctx.fillStyle = '#361e12';
+      // Plush Burgundy & Brass Theater Doors
+      ctx.fillStyle = '#581c28';
       ctx.fillRect(doorX, doorY, halfDoor, doorH);
       ctx.fillRect(doorX + doorW - halfDoor, doorY, halfDoor, doorH);
-      // Door wood panels & brass knockers
-      ctx.fillStyle = '#24130b';
+      ctx.fillStyle = '#fbbf24';
       if (halfDoor > 6) {
         ctx.fillRect(doorX + 3, doorY + 4, halfDoor - 5, 14);
-        ctx.fillRect(doorX + 3, doorY + 22, halfDoor - 5, 16);
         ctx.fillRect(doorX + doorW - halfDoor + 2, doorY + 4, halfDoor - 5, 14);
-        ctx.fillRect(doorX + doorW - halfDoor + 2, doorY + 22, halfDoor - 5, 16);
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillRect(doorX + 4, doorY + 5, halfDoor - 7, 12);
+        ctx.fillRect(doorX + doorW - halfDoor + 3, doorY + 5, halfDoor - 7, 12);
       }
-      ctx.fillStyle = '#f59e0b';
-      ctx.fillRect(doorX + halfDoor - 3, doorY + 20, 2, 3);
-      ctx.fillRect(doorX + doorW - halfDoor + 1, doorY + 20, 2, 3);
+      // Brass push bars
+      ctx.fillStyle = '#fde047';
+      ctx.fillRect(doorX + halfDoor - 4, doorY + 23, 3, 2);
+      ctx.fillRect(doorX + doorW - halfDoor + 1, doorY + 23, 3, 2);
 
-      // Flickering Porch Lanterns on both sides of the door
-      const lanternFlicker = frame % 85 !== 0;
-      if (lanternFlicker) {
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillRect(doorX - 8, doorY + 8, 3, 6);
-        ctx.fillRect(doorX + doorW + 5, doorY + 8, 3, 6);
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.16)';
-        ctx.fillRect(doorX - 18, doorY - 2, 24, 26);
-        ctx.fillRect(doorX + doorW - 6, doorY - 2, 24, 26);
-      }
-
-      // Gnarled Trees & Stick Runes framing the mansion
-      ctx.fillStyle = '#0a080d';
-      [18, 44, 72, 308, 336, 360].forEach((tx, idx) => {
-        const th = 86 + (idx % 2) * 18;
-        ctx.fillRect(tx, 154 - th, 7, th);
-        ctx.fillRect(tx - 9, 154 - th + 18, 22, 3);
-      });
-      const sway = Math.sin(frame * 0.05) * 1.2;
-      drawStickRune(ctx, 62, 102, sway);
-      drawStickRune(ctx, 322, 98, -sway);
-
-      // 3. Stone Steps & Courtyard Path leading to the Mansion Door
-      ctx.fillStyle = '#080a09';
+      // 3. Walk of Fame Sidewalk & Premiere Red Carpet Runner
+      ctx.fillStyle = '#0f1420';
       ctx.fillRect(0, 148, W, H - 148);
 
-      // Stone steps right in front of the door
-      ctx.fillStyle = '#1f1b27';
-      ctx.fillRect(156, 148, 68, 5);
-      ctx.fillRect(148, 153, 84, 5);
-      // Cobblestone path where Caldas & Aninha stand
-      ctx.fillStyle = '#15121b';
-      ctx.fillRect(138, 158, 104, 52);
-      ctx.fillStyle = '#231e2c';
-      for (let py = 162; py < 205; py += 9) {
-        for (let px = 144; px < 232; px += 16) {
-          ctx.fillRect(px + (py % 18 === 0 ? 5 : 0), py, 10, 4);
+      // Sidewalk tiles & Golden Walk of Fame Stars
+      ctx.fillStyle = '#1e2536';
+      for (let tx = 10; tx < W; tx += 36) {
+        ctx.fillRect(tx, 152, 32, 54);
+        if (tx < 120 || tx > 240) {
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(tx + 14, 172, 4, 4);
+          ctx.fillStyle = '#1e2536';
         }
       }
 
-      // 4. PIXEL ART CALDAS & ANINHA STANDING IN FRONT OF THE MANSION DOOR!
+      // Plush Red Carpet leading from bottom of screen to the Cinema Doors
+      ctx.fillStyle = '#7f1d1d';
+      ctx.fillRect(148, 148, 84, 62);
+      ctx.fillStyle = '#991b1b';
+      ctx.fillRect(154, 148, 72, 62);
+      // Gold carpet borders
+      ctx.fillStyle = '#fbbf24';
+      ctx.fillRect(150, 148, 2, 62);
+      ctx.fillRect(228, 148, 2, 62);
+
+      // Gold Stanchions & Velvet Ropes on both sides of the Red Carpet
+      [144, 234].forEach((sx) => {
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillRect(sx, 154, 2, 12);
+        ctx.fillRect(sx, 176, 2, 14);
+        ctx.fillStyle = '#dc2626';
+        ctx.fillRect(sx, 160, 2, 18);
+      });
+
+      // 4. PIXEL ART CALDAS & ANINHA STANDING ON THE RED CARPET!
       const walkUpOffset = isEnteringRef.current ? Math.min(28, enterProgress * 0.36) : 0;
       const coupleScaleAlpha =
         isEnteringRef.current && enterProgress > 75
           ? Math.max(0, 1 - (enterProgress - 75) / 25)
           : 1;
 
-      const cx = 190;
-      const cy = Math.round(176 - walkUpOffset);
+      const coupleX = 190;
+      const coupleY = Math.round(176 - walkUpOffset);
 
       ctx.save();
       ctx.globalAlpha = coupleScaleAlpha;
 
-      // Warm lantern glow around Caldas & Aninha
-      const coupleGlow = ctx.createRadialGradient(cx, cy - 16, 4, cx, cy - 16, 56);
-      coupleGlow.addColorStop(0, 'rgba(245, 158, 11, 0.36)');
-      coupleGlow.addColorStop(0.5, 'rgba(185, 28, 28, 0.14)');
+      const coupleGlow = ctx.createRadialGradient(
+        coupleX,
+        coupleY - 16,
+        4,
+        coupleX,
+        coupleY - 16,
+        56
+      );
+      coupleGlow.addColorStop(0, 'rgba(251, 191, 36, 0.38)');
+      coupleGlow.addColorStop(0.5, 'rgba(220, 38, 38, 0.14)');
       coupleGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
       ctx.fillStyle = coupleGlow;
-      ctx.fillRect(cx - 58, cy - 72, 116, 90);
+      ctx.fillRect(coupleX - 58, coupleY - 72, 116, 90);
 
       const animState = {
         frame,
         isWalking: isEnteringRef.current,
         facing: 'right' as const,
-        isScared: isLightning,
-        isLookingBack: !isEnteringRef.current && frame % 220 > 185,
+        isScared: false,
+        isLookingBack: false,
         isHoldingHands: true,
         blink: frame % 100 > 95,
       };
 
-      // Aninha on left, Caldas on right, holding hands in front of the mansion door!
-      drawAninhaPixelSprite(ctx, cx - 8, cy, coupleConfig.her, animState);
+      drawAninhaPixelSprite(ctx, coupleX - 8, coupleY, coupleConfig.her, animState);
       drawCaldasPixelSprite(
         ctx,
-        cx + 8,
-        cy,
+        coupleX + 8,
+        coupleY,
         coupleConfig.him,
         animState,
         coupleConfig.lanternColor
       );
 
-      // Floating crimson heart above their joined hands
       const heartBob = Math.sin(frame * 0.08) * 1.5;
-      drawPixelHeart(ctx, cx - 1, cy - 39 + heartBob, '#dc2626');
+      drawPixelHeart(ctx, coupleX - 1, coupleY - 39 + heartBob, '#dc2626');
 
       ctx.restore();
-
-      // 5. Rolling Fog & Rain
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.09)';
-      fogBands.forEach((f) => {
-        if (!reducedMotion) f.x = (f.x + f.speed) % (W + 60);
-        ctx.fillRect(Math.round(f.x - 50), f.y, f.w, f.h);
-      });
-
-      if (!reducedMotion) {
-        ctx.fillStyle = 'rgba(148, 163, 184, 0.3)';
-        rainDrops.forEach((r) => {
-          r.y += r.speed;
-          r.x -= 0.4;
-          if (r.y > H) {
-            r.y = -6;
-            r.x = Math.random() * W;
-          }
-          if (r.x < 0) r.x = W;
-          ctx.fillRect(Math.round(r.x), Math.round(r.y), 1, r.len);
-        });
-      }
 
       animId = requestAnimationFrame(render);
     };
@@ -301,17 +324,16 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
     return () => cancelAnimationFrame(animId);
   }, [coupleConfig, reducedMotion]);
 
-  const handleEnterMansion = () => {
-    if (isEnteringMansion) return;
-    setIsEnteringMansion(true);
+  const handleEnterCinema = () => {
+    if (isEnteringCinema) return;
+    setIsEnteringCinema(true);
 
     soundEngine.startAmbient();
-    soundEngine.playDoorCreak();
-    soundEngine.playHeartbeat(0.7);
+    soundEngine.playRomanticChime();
 
     setTimeout(() => {
       onEnterNight();
-    }, reducedMotion ? 400 : 2100);
+    }, reducedMotion ? 400 : 1900);
   };
 
   const handleToggleAudio = (e: React.MouseEvent) => {
@@ -324,80 +346,82 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#040306] overflow-hidden select-none flex flex-col justify-between">
-      {/* Full-Screen Pixel Art Scene: Caldas & Aninha in front of the Mansion Door */}
+    <div className="fixed inset-0 z-50 bg-[#040711] overflow-hidden select-none flex flex-col justify-between">
+      {/* Full-Screen Pixel Art Scene: Caldas & Aninha in front of Grand Cine Olhinhos */}
       <canvas
         ref={canvasRef}
         width={W}
         height={H}
-        onClick={handleEnterMansion}
+        onClick={handleEnterCinema}
         onMouseMove={() => setIsDoorHovered(true)}
-        className={`absolute inset-0 w-full h-full object-cover pixelated transition-transform duration-[2100ms] ease-in-out cursor-pointer ${
-          isEnteringMansion ? 'scale-[1.65] brightness-110' : 'scale-100'
+        className={`absolute inset-0 w-full h-full object-cover pixelated transition-transform duration-[1900ms] ease-in-out cursor-pointer ${
+          isEnteringCinema ? 'scale-[1.65] brightness-110' : 'scale-100'
         }`}
       />
 
-      {/* Scanlines & Atmospheric Vignette */}
-      <div className="pointer-events-none absolute inset-0 crt-scanlines opacity-45" />
-      <div className="pointer-events-none absolute inset-0 vignette-heavy" />
+      <div className="pointer-events-none absolute inset-0 crt-scanlines opacity-30" />
+      <div className="pointer-events-none absolute inset-0 vignette-heavy opacity-75" />
 
       {/* Top HUD Bar */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-8 pt-4 flex items-center justify-end">
         <button
           onClick={handleToggleAudio}
-          className="px-3 py-1.5 bg-black/80 hover:bg-red-950/60 border border-red-900/60 text-zinc-200 font-vt text-base flex items-center gap-2 transition cursor-pointer"
+          className="px-3 py-1.5 bg-black/80 hover:bg-amber-950/60 border border-amber-500/60 text-amber-100 font-vt text-base flex items-center gap-2 transition cursor-pointer"
         >
           {isMuted ? (
             <>
-              <VolumeX className="w-4 h-4 text-red-400" />
+              <VolumeX className="w-4 h-4 text-amber-400" />
               <span>Som: OFF</span>
             </>
           ) : (
             <>
-              <Volume2 className="w-4 h-4 text-red-400" />
+              <Volume2 className="w-4 h-4 text-amber-400" />
               <span>Som: ON</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Upper-Center Title & Subtitle Requested by Caldas */}
+      {/* Upper-Center Title & Subtitle */}
       <div
         className={`relative z-10 max-w-3xl mx-auto px-4 pt-2 text-center pointer-events-none transition-opacity duration-700 ${
-          isEnteringMansion ? 'opacity-0' : 'opacity-100'
+          isEnteringCinema ? 'opacity-0' : 'opacity-100'
         }`}
       >
-        <div className="bg-black/75 backdrop-blur-[2px] border-2 border-red-900/80 px-6 sm:px-10 py-5 shadow-[0_0_55px_rgba(0,0,0,0.95)] space-y-3">
-          <h1 className="font-gothic text-xl sm:text-3xl md:text-4xl text-white glitch-text tracking-wider leading-snug">
-            Uma Lista de Terror para Aninha
+        <div className="bg-[#090d1a]/88 backdrop-blur-[2px] border-2 border-amber-500/80 px-6 sm:px-10 py-5 shadow-[0_0_55px_rgba(0,0,0,0.95)] space-y-2.5">
+          <div className="font-pixel text-[9px] sm:text-[10px] text-amber-400 tracking-[0.25em] uppercase">
+            ★ GRAND CINE OLHINHOS • SESSÃO EXCLUSIVA ★
+          </div>
+          <h1 className="font-gothic text-xl sm:text-3xl md:text-4xl text-white tracking-wider leading-snug">
+            Uma Lista de Filmes para Aninha
           </h1>
-          <p className="font-serif-horror italic text-base sm:text-xl text-red-400 tracking-wide">
+          <p className="font-serif-horror italic text-base sm:text-xl text-amber-300 tracking-wide">
             Feito com carinho! - Caldas
           </p>
         </div>
       </div>
 
-      {/* Bottom Interactive Prompt to Enter the Mansion */}
+      {/* Bottom Interactive Prompt to Enter the Cinema */}
       <div
         className={`relative z-10 pb-7 sm:pb-10 px-4 flex flex-col items-center gap-3 transition-opacity duration-500 ${
-          isEnteringMansion ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          isEnteringCinema ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
         <button
-          onClick={handleEnterMansion}
+          onClick={handleEnterCinema}
           onMouseEnter={() => {
             setIsDoorHovered(true);
-            soundEngine.playHeartbeat(0.45);
+            soundEngine.playRomanticChime();
           }}
           onMouseLeave={() => setIsDoorHovered(false)}
-          className="group px-8 py-4 bg-[#1c060b]/95 hover:bg-[#450a17] border-2 border-red-600 text-white font-pixel text-xs sm:text-sm tracking-[0.2em] uppercase shadow-[0_0_35px_rgba(220,38,38,0.6)] hover:shadow-[0_0_55px_rgba(239,68,68,0.95)] transition-all flex items-center gap-3 cursor-pointer"
+          className="group px-8 py-4 bg-[#450a14]/95 hover:bg-[#7f1d1d] border-2 border-amber-400 text-white font-pixel text-xs sm:text-sm tracking-[0.2em] uppercase shadow-[0_0_35px_rgba(245,158,11,0.5)] hover:shadow-[0_0_55px_rgba(251,191,36,0.9)] transition-all flex items-center gap-3 cursor-pointer"
         >
-          <DoorOpen className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-          <span>ENTRAR NA MANSÃO</span>
+          <Film className="w-5 h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+          <span>ENTRAR NO CINEMA</span>
         </button>
 
-        <span className="px-3 py-1 bg-black/80 border border-zinc-800 font-vt text-sm sm:text-base text-zinc-300 tracking-widest">
-          Clique na porta da mansão ou no botão acima para entrar com {coupleConfig.him.name} &lt;3
+        <span className="px-3 py-1 bg-black/80 border border-amber-900/60 font-vt text-sm sm:text-base text-amber-100 tracking-widest">
+          Clique nas portas do cinema ou no botão acima para entrar com {coupleConfig.him.name} &lt;3
         </span>
       </div>
     </div>
