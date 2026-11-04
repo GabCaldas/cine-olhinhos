@@ -54,10 +54,11 @@ import {
   Footprints,
   KeyRound,
   Award,
-  Music,
   Cloud,
   RefreshCw,
   Bot,
+  SlidersHorizontal,
+  X,
 } from 'lucide-react';
 
 export function App() {
@@ -84,6 +85,7 @@ export function App() {
   const [isMovieEditorOpen, setIsMovieEditorOpen] = useState<boolean>(false);
   const [isSecretsOpen, setIsSecretsOpen] = useState<boolean>(false);
   const [isButlerOpen, setIsButlerOpen] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [agentTargetMovieId, setAgentTargetMovieId] = useState<string | null>(null);
 
   // Easter eggs discovery tracker (Local session only — NOT saved in cloud!)
@@ -503,166 +505,245 @@ export function App() {
         />
       )}
 
-      {/* TOP NAVIGATION / GRAND CINE OLHINHOS HUD */}
-      <header className="sticky top-0 z-30 bg-[#070408]/95 backdrop-blur-xs border-b border-amber-900/50 px-3 sm:px-6 py-2.5">
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
-          {/* Title */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-[#1f070d] border border-amber-500/80 flex items-center justify-center shadow-[0_0_15px_rgba(245,158,11,0.35)]">
-              <Film className="w-4 h-4 text-amber-400" />
+      {/* TOP NAVIGATION / GRAND CINE OLHINHOS HUD (Clean Single-Row Layout on Mobile & Desktop) */}
+      <header className="sticky top-0 z-30 bg-[#070408]/95 backdrop-blur-xs border-b border-amber-900/50 px-2.5 sm:px-6 py-2">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2 relative">
+          {/* Left: Compact Cinema Logo & Title */}
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 bg-[#1f070d] border border-amber-500/80 flex items-center justify-center shadow-[0_0_12px_rgba(245,158,11,0.3)]">
+              <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
             </div>
-            <div>
-              <h1 className="font-gothic text-sm sm:text-base tracking-wider text-white flex items-center gap-2">
-                <span>Grand Cine Olhinhos — Uma Lista de Filmes para meus oinhos</span>
-              </h1>
-              <p className="font-vt text-xs text-amber-300 tracking-wider">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-gothic text-xs sm:text-base tracking-wider text-white truncate">
+                  <span className="sm:hidden">Grand Cine Olhinhos</span>
+                  <span className="hidden sm:inline">
+                    Grand Cine Olhinhos — Filmes para meus oinhos
+                  </span>
+                </h1>
+                <span
+                  onClick={handleManualCloudSync}
+                  title={
+                    cloudStatus === 'online'
+                      ? 'Nuvem sincronizada (toque para atualizar)'
+                      : cloudStatus === 'syncing'
+                      ? 'Sincronizando...'
+                      : 'Modo local'
+                  }
+                  className={`w-2 h-2 rounded-full shrink-0 cursor-pointer ${
+                    cloudStatus === 'online'
+                      ? 'bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]'
+                      : cloudStatus === 'syncing'
+                      ? 'bg-amber-400 animate-ping'
+                      : 'bg-zinc-600'
+                  }`}
+                />
+              </div>
+              <p className="hidden sm:block font-vt text-xs text-amber-300/90 tracking-wider leading-none">
                 Feito com carinho! - Caldas 🍿❤️
               </p>
             </div>
           </div>
 
-          {/* Right HUD Controls */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Summon George (The Cinema Concierge) */}
+          {/* Right: Streamlined Primary Actions + Compact Options Menu */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* 1. Summon George (The Cinema Concierge) */}
             <button
               onClick={() => {
                 soundEngine.playRomanticChime();
                 setIsButlerOpen(true);
+                setIsMenuOpen(false);
               }}
-              className="px-3 py-1 bg-[#260c14] hover:bg-[#3d1220] border border-amber-500/80 text-amber-200 font-vt text-sm flex items-center gap-1.5 shadow-[0_0_15px_rgba(245,158,11,0.28)] transition cursor-pointer"
+              className="px-2.5 sm:px-3 py-1 bg-[#260c14] hover:bg-[#3d1220] border border-amber-500/80 text-amber-200 font-vt text-xs sm:text-sm flex items-center gap-1 shadow-[0_0_12px_rgba(245,158,11,0.25)] transition cursor-pointer"
               title="Conversar com George, o Concierge e Curador Cinéfilo do Cinema"
             >
-              <Bot className="w-4 h-4 text-amber-400" />
-              <span>🎬 Concierge George</span>
+              <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
+              <span>George</span>
             </button>
 
-            {/* Switch between Room 1 (Corridor) and Room 2 (Chosen Movies Hall) */}
+            {/* 2. Switch between Foyer and Sala VIP */}
             <button
               onClick={() => {
                 soundEngine.playDoorCreak();
                 setActiveRoom((r) => (r === 'corridor' ? 'chosen_hall' : 'corridor'));
+                setIsMenuOpen(false);
               }}
-              className={`px-3 py-1 border font-vt text-sm flex items-center gap-1.5 transition cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 border font-vt text-xs sm:text-sm flex items-center gap-1 transition cursor-pointer ${
                 activeRoom === 'chosen_hall'
-                  ? 'bg-amber-800/90 border-amber-400 text-white shadow-[0_0_18px_rgba(245,158,11,0.4)]'
+                  ? 'bg-amber-800/90 border-amber-400 text-white shadow-[0_0_15px_rgba(245,158,11,0.4)]'
                   : 'bg-[#211108] hover:bg-[#381c0c] border-amber-700/80 text-amber-200'
               }`}
               title="Alternar entre o Foyer do Cinema e a Sala VIP dos Filmes Escolhidos"
             >
-              <Award className="w-4 h-4 text-amber-300" />
+              <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 shrink-0" />
               <span>
                 {activeRoom === 'chosen_hall'
-                  ? '← Voltar ao Foyer'
-                  : `Sala VIP (${chosenRecords.length})`}
+                  ? '← Foyer'
+                  : `VIP (${chosenRecords.length})`}
               </span>
             </button>
 
-            {activeRoom === 'corridor' && (
-              <>
-                <button
-                  onClick={handleRoulettePick}
-                  className="px-3 py-1 bg-[#240710] hover:bg-[#3d0b1a] border border-red-700/80 text-red-100 font-vt text-sm flex items-center gap-1.5 transition cursor-pointer"
-                  title="Sortear um quadro aleatoriamente"
-                >
-                  <Shuffle className="w-3.5 h-3.5 text-red-400" />
-                  <span>Sortear</span>
-                </button>
-
-                <button
-                  onClick={() => setShowGridBelow((v) => !v)}
-                  className={`px-2.5 py-1 border font-vt text-sm flex items-center gap-1.5 transition cursor-pointer ${
-                    showGridBelow
-                      ? 'bg-amber-950/70 border-amber-600 text-amber-200'
-                      : 'bg-zinc-900/90 border-zinc-700 text-zinc-200 hover:border-amber-700'
-                  }`}
-                >
-                  {showGridBelow ? (
-                    <>
-                      <Footprints className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Só Corredor 2D</span>
-                    </>
-                  ) : (
-                    <>
-                      <LayoutGrid className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Ver em Grade</span>
-                    </>
-                  )}
-                </button>
-              </>
-            )}
-
-            <button
-              onClick={() => setIsSecretsOpen(true)}
-              className="px-2.5 py-1 bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 font-vt text-sm flex items-center gap-1.5 transition cursor-pointer"
-              title="Ver Easter Eggs dos filmes favoritos escondidos no cinema"
-            >
-              <Eye className="w-3.5 h-3.5 text-amber-400" />
-              <span>
-                Easter Eggs ({discoveredEggs.length}/{TOTAL_EASTER_EGGS})
-              </span>
-            </button>
-
-            {/* Cloud Sync Status & Manual Sync Button */}
-            <button
-              onClick={handleManualCloudSync}
-              className={`px-2.5 py-1 border font-vt text-xs flex items-center gap-1.5 transition cursor-pointer ${
-                cloudStatus === 'online'
-                  ? 'bg-emerald-950/40 border-emerald-700/60 text-emerald-300 hover:bg-emerald-900/50'
-                  : cloudStatus === 'syncing'
-                  ? 'bg-amber-950/50 border-amber-700/60 text-amber-200'
-                  : 'bg-zinc-900/90 border-zinc-700 text-zinc-400'
-              }`}
-              title="Sincronização em Nuvem Ativa (Clique para forçar sincronização agora)"
-            >
-              {cloudStatus === 'syncing' ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-400" />
-              ) : (
-                <Cloud className="w-3.5 h-3.5 text-emerald-400" />
-              )}
-              <span className="hidden sm:inline">
-                {cloudStatus === 'syncing'
-                  ? 'Sincronizando...'
-                  : cloudStatus === 'online'
-                  ? 'Nuvem Ativa'
-                  : 'Local'}
-              </span>
-            </button>
-
-            <button
-              onClick={() => setReducedMotion((v) => !v)}
-              className={`px-2 py-1 border font-vt text-sm flex items-center gap-1 transition cursor-pointer ${
-                reducedMotion
-                  ? 'bg-emerald-950/60 border-emerald-700 text-emerald-200'
-                  : 'bg-zinc-900/90 border-zinc-800 text-zinc-400 hover:text-zinc-200'
-              }`}
-              title="Reduzir Movimento"
-            >
-              <EyeOff className="w-3.5 h-3.5" />
-            </button>
-
+            {/* 3. Quick Mute / Unmute Audio */}
             <button
               onClick={handleToggleAudio}
-              className="px-2.5 py-1 bg-zinc-900/90 hover:bg-red-950/60 border border-red-900/50 text-zinc-200 font-vt text-sm flex items-center gap-1.5 transition cursor-pointer"
-              title={isMuted ? 'Ativar Trilha Sonora 2D Horror Chiptune' : 'Silenciar Trilha Sonora 2D Horror Chiptune'}
+              className="p-1.5 bg-zinc-900/90 hover:bg-amber-950/60 border border-amber-800/60 text-zinc-200 transition cursor-pointer"
+              title={isMuted ? 'Ativar Som' : 'Silenciar Som'}
             >
               {isMuted ? (
-                <VolumeX className="w-4 h-4 text-red-400" />
+                <VolumeX className="w-4 h-4 text-zinc-400" />
               ) : (
-                <>
-                  <Music className="w-3.5 h-3.5 text-red-400 animate-pulse" />
-                  <Volume2 className="w-4 h-4 text-red-400" />
-                </>
+                <Volume2 className="w-4 h-4 text-amber-400" />
               )}
             </button>
 
+            {/* 4. Clean Options Menu Toggle (Hides secondary buttons so Mobile & Desktop stay super clean!) */}
             <button
-              onClick={() => setHasEnteredMansion(false)}
-              className="px-2.5 py-1 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-zinc-200 font-vt text-xs flex items-center gap-1 cursor-pointer"
-              title="Voltar para a porta de entrada da mansão"
+              onClick={() => setIsMenuOpen((v) => !v)}
+              className={`px-2 py-1.5 border font-vt text-xs sm:text-sm flex items-center gap-1 transition cursor-pointer ${
+                isMenuOpen
+                  ? 'bg-amber-900/80 border-amber-400 text-amber-100'
+                  : 'bg-zinc-900/90 hover:bg-zinc-800 border-zinc-700 text-zinc-200'
+              }`}
+              title="Mais opções (Sortear, Easter Eggs, Grade, Nuvem...)"
             >
-              <DoorOpen className="w-3.5 h-3.5" />
+              {isMenuOpen ? (
+                <X className="w-4 h-4 text-amber-300" />
+              ) : (
+                <SlidersHorizontal className="w-4 h-4 text-amber-400" />
+              )}
+              <span className="hidden md:inline">Menu</span>
             </button>
           </div>
+
+          {/* Clean Dropdown Menu for Secondary Controls */}
+          {isMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-30"
+                onClick={() => setIsMenuOpen(false)}
+              />
+              <div className="absolute right-0 top-full mt-2 z-40 w-64 bg-[#0b0813] border-2 border-amber-600/80 shadow-[0_15px_45px_rgba(0,0,0,0.95)] p-2 space-y-1 animate-fadeIn">
+                <div className="px-2.5 py-1 font-pixel text-[8px] text-amber-400 uppercase tracking-wider border-b border-amber-950/80">
+                  Opções do Cinema
+                </div>
+
+                {activeRoom === 'corridor' && (
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleRoulettePick();
+                      }}
+                      className="w-full px-3 py-2 text-left hover:bg-amber-950/50 text-zinc-100 font-vt text-sm flex items-center justify-between transition cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Shuffle className="w-4 h-4 text-amber-400" />
+                        <span>Sortear Filme Aleatório</span>
+                      </span>
+                      <span className="text-xs text-amber-400">🎲</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setShowGridBelow((v) => !v);
+                        setIsMenuOpen(false);
+                      }}
+                      className="w-full px-3 py-2 text-left hover:bg-amber-950/50 text-zinc-100 font-vt text-sm flex items-center justify-between transition cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        {showGridBelow ? (
+                          <Footprints className="w-4 h-4 text-amber-400" />
+                        ) : (
+                          <LayoutGrid className="w-4 h-4 text-amber-400" />
+                        )}
+                        <span>
+                          {showGridBelow ? 'Ocultar Grade Abaixo' : 'Ver Todos em Grade'}
+                        </span>
+                      </span>
+                    </button>
+                  </>
+                )}
+
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsSecretsOpen(true);
+                  }}
+                  className="w-full px-3 py-2 text-left hover:bg-amber-950/50 text-zinc-100 font-vt text-sm flex items-center justify-between transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-amber-400" />
+                    <span>Easter Eggs do Cinema</span>
+                  </span>
+                  <span className="px-1.5 py-0.5 bg-amber-950 border border-amber-700 text-amber-300 text-xs">
+                    {discoveredEggs.length}/{TOTAL_EASTER_EGGS}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    handleManualCloudSync();
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-3 py-2 text-left hover:bg-amber-950/50 text-zinc-100 font-vt text-sm flex items-center justify-between transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    {cloudStatus === 'syncing' ? (
+                      <RefreshCw className="w-4 h-4 animate-spin text-amber-400" />
+                    ) : (
+                      <Cloud className="w-4 h-4 text-emerald-400" />
+                    )}
+                    <span>Sincronizar Nuvem</span>
+                  </span>
+                  <span className="text-xs text-emerald-400">
+                    {cloudStatus === 'online' ? 'Online' : 'Sync'}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setReducedMotion((v) => !v);
+                    setIsMenuOpen(false);
+                  }}
+                  className="w-full px-3 py-2 text-left hover:bg-amber-950/50 text-zinc-100 font-vt text-sm flex items-center justify-between transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <EyeOff className="w-4 h-4 text-zinc-400" />
+                    <span>Reduzir Movimento</span>
+                  </span>
+                  <span className="text-xs text-amber-300">
+                    {reducedMotion ? 'ATIVO' : 'OFF'}
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setIsMovieEditorOpen(true);
+                  }}
+                  className="w-full px-3 py-2 text-left hover:bg-amber-950/50 text-zinc-100 font-vt text-sm flex items-center justify-between transition cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <KeyRound className="w-4 h-4 text-amber-400" />
+                    <span>Curadoria de Cartazes</span>
+                  </span>
+                </button>
+
+                <div className="border-t border-zinc-800/80 pt-1 mt-1">
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setHasEnteredMansion(false);
+                    }}
+                    className="w-full px-3 py-2 text-left hover:bg-red-950/50 text-red-200 font-vt text-sm flex items-center gap-2 transition cursor-pointer"
+                  >
+                    <DoorOpen className="w-4 h-4 text-red-400" />
+                    <span>Voltar à Fachada do Cinema</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </header>
 

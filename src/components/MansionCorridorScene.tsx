@@ -22,7 +22,6 @@ import {
   Eye,
   Flame,
   Skull,
-  Footprints,
   Sparkles,
   ChevronLeft,
   ChevronRight,
@@ -883,44 +882,10 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
   const currentIsHorror = currentMovie ? isHorrorMovie(currentMovie) : false;
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-2 sm:px-6 pt-2 pb-10 select-none space-y-4">
+    <div className="w-full max-w-6xl mx-auto px-2 sm:px-6 pt-1 pb-8 select-none">
       <div className="relative border-2 border-amber-600/80 bg-[#070b16] shadow-[0_0_70px_rgba(0,0,0,0.95),0_0_30px_rgba(245,158,11,0.22)] overflow-hidden">
-        {/* Top Cinema Lobby Guidance Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 bg-[#0d1326] border-b border-amber-700/50 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            <span className="font-pixel text-[9px] sm:text-[10px] text-amber-300 tracking-wider uppercase">
-              GRAND CINE OLHINHOS // GALERIA &quot;EM CARTAZ&quot;
-            </span>
-          </div>
-
-          <div className="font-vt text-sm text-zinc-200 flex flex-wrap items-center gap-2.5">
-            <button
-              onClick={() => {
-                soundEngine.playRomanticChime();
-                onOpenButlerAgent();
-              }}
-              className="px-2.5 py-0.5 bg-amber-950/90 hover:bg-amber-900 border border-amber-400/80 text-amber-100 font-vt text-sm flex items-center gap-1.5 shadow-[0_0_12px_rgba(245,158,11,0.3)] transition cursor-pointer"
-            >
-              <Clapperboard className="w-3.5 h-3.5 text-amber-300" />
-              <span>🎬 Falar com George (Concierge)</span>
-            </button>
-
-            <button
-              onClick={() => {
-                soundEngine.playRomanticChime();
-                onEnterChosenHall();
-              }}
-              className="px-2.5 py-0.5 bg-rose-950/80 hover:bg-rose-900 border border-rose-500/80 text-rose-100 font-vt text-sm flex items-center gap-1.5 transition cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>Sala VIP dos Escolhidos ({chosenCount}) →</span>
-            </button>
-          </div>
-        </div>
-
         {/* Pixel Art Cinema Lobby Canvas */}
-        <div className="relative w-full aspect-[420/215] max-h-[500px] bg-[#070b16]">
+        <div className="relative w-full aspect-[16/9] sm:aspect-[420/215] max-h-[500px] bg-[#070b16]">
           <canvas
             ref={canvasRef}
             width={VIEW_W}
@@ -942,16 +907,16 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
           <div className="pointer-events-none absolute inset-0 crt-scanlines opacity-20" />
 
           {hoveredButler && (
-            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 bg-black/92 border border-amber-400 text-amber-200 font-vt text-base tracking-wide flex items-center gap-2 shadow-xl">
+            <div className="hidden sm:flex pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 bg-black/92 border border-amber-400 text-amber-200 font-vt text-base tracking-wide items-center gap-2 shadow-xl">
               <Bot className="w-4 h-4 text-amber-400 animate-bounce" />
               <span>
-                🎬 <strong>George, o Concierge Cinéfilo</strong> — Clique para pedir sugestões, saber onde assistir ou gerenciar os cartazes!
+                🎬 <strong>George, o Concierge Cinéfilo</strong> — Clique para conversar!
               </span>
             </div>
           )}
 
           {hoveredPaintingIdx !== null && visibleMovies[hoveredPaintingIdx] && (
-            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 bg-black/90 border border-amber-400 text-amber-200 font-vt text-base tracking-wide flex items-center gap-2 shadow-xl">
+            <div className="hidden sm:flex pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 bg-black/90 border border-amber-400 text-amber-200 font-vt text-base tracking-wide items-center gap-2 shadow-xl">
               <Eye className="w-4 h-4 text-amber-400 animate-pulse" />
               <span>
                 Clique para abrir:{' '}
@@ -962,7 +927,7 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
           )}
 
           {hoveredProp && (
-            <div className="pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-black/90 border border-amber-500 text-amber-200 font-vt text-base flex items-center gap-2">
+            <div className="hidden sm:flex pointer-events-none absolute top-3 left-1/2 -translate-x-1/2 px-3.5 py-1 bg-black/90 border border-amber-500 text-amber-200 font-vt text-base items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>
                 {getCorridorProps().find((p) => p.id === hoveredProp)?.promptLabel}
@@ -972,28 +937,29 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
 
           {/* In-Scene RPG Discovery Overlay when a Cinema Easter Egg is triggered */}
           {eventMessage && (
-            <div className="absolute bottom-3 left-3 right-28 sm:right-36 bg-[#090d1a]/95 border-2 border-amber-400 px-4 py-2.5 shadow-[0_0_30px_rgba(0,0,0,0.95)] flex items-start justify-between gap-3 animate-fadeIn">
-              <div className="space-y-0.5">
-                <div className="font-pixel text-[8px] sm:text-[9px] text-amber-300 uppercase tracking-wider">
+            <div className="absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 bg-[#090d1a]/95 border-2 border-amber-400 px-3 sm:px-4 py-2 shadow-[0_0_30px_rgba(0,0,0,0.95)] flex items-start justify-between gap-2 animate-fadeIn z-20">
+              <div className="space-y-0.5 min-w-0">
+                <div className="font-pixel text-[8px] sm:text-[9px] text-amber-300 uppercase tracking-wider truncate">
                   ★ {eventMessage.location} // {eventMessage.title}
                 </div>
-                <p className="font-serif-horror italic text-sm sm:text-base text-zinc-100 leading-snug">
+                <p className="font-serif-horror italic text-xs sm:text-base text-zinc-100 leading-snug">
                   {eventMessage.text}
                 </p>
               </div>
               <button
                 onClick={() => setEventMessage(null)}
-                className="text-xs font-vt text-amber-300 hover:text-white uppercase tracking-wider shrink-0 cursor-pointer"
+                className="text-xs font-vt text-amber-300 hover:text-white uppercase tracking-wider shrink-0 cursor-pointer px-1"
               >
                 [X]
               </button>
             </div>
           )}
 
+          {/* Clean Left / Right Navigation Arrows */}
           <button
             onClick={() => walkToPainting(activePaintingIdx - 1)}
             disabled={activePaintingIdx <= 0}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/80 hover:bg-amber-950/90 disabled:opacity-25 border border-amber-600/70 text-amber-200 transition cursor-pointer"
+            className="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 p-1.5 sm:p-2.5 bg-black/75 hover:bg-amber-950/90 disabled:opacity-20 border border-amber-600/70 text-amber-200 transition cursor-pointer"
             title="Cartaz Anterior (←)"
           >
             <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -1002,45 +968,22 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
           <button
             onClick={() => walkToPainting(activePaintingIdx + 1)}
             disabled={activePaintingIdx >= visibleMovies.length - 1}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/80 hover:bg-amber-950/90 disabled:opacity-25 border border-amber-600/70 text-amber-200 transition cursor-pointer"
+            className="absolute right-1.5 sm:right-2.5 top-1/2 -translate-y-1/2 p-1.5 sm:p-2.5 bg-black/75 hover:bg-amber-950/90 disabled:opacity-20 border border-amber-600/70 text-amber-200 transition cursor-pointer"
             title="Próximo Cartaz (→)"
           >
             <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
-
-          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/80 border border-amber-900/60 px-2.5 py-1">
-            <Footprints className="w-3.5 h-3.5 text-amber-400 mr-1" />
-            <button
-              onMouseDown={() => (keysRef.current.left = true)}
-              onMouseUp={() => (keysRef.current.left = false)}
-              onMouseLeave={() => (keysRef.current.left = false)}
-              onTouchStart={() => (keysRef.current.left = true)}
-              onTouchEnd={() => (keysRef.current.left = false)}
-              className="px-2.5 py-0.5 bg-zinc-900 hover:bg-amber-950 border border-zinc-700 text-zinc-200 font-pixel text-[10px] cursor-pointer"
-            >
-              ◄
-            </button>
-            <button
-              onMouseDown={() => (keysRef.current.right = true)}
-              onMouseUp={() => (keysRef.current.right = false)}
-              onMouseLeave={() => (keysRef.current.right = false)}
-              onTouchStart={() => (keysRef.current.right = true)}
-              onTouchEnd={() => (keysRef.current.right = false)}
-              className="px-2.5 py-0.5 bg-zinc-900 hover:bg-amber-950 border border-zinc-700 text-zinc-200 font-pixel text-[10px] cursor-pointer"
-            >
-              ►
-            </button>
-          </div>
         </div>
 
-        {/* ACTIVE MOVIE HUD PANEL (Hybrid: Terror Template vs. Cinema Template) */}
+        {/* ACTIVE MOVIE HUD PANEL (Clean, Mobile-Ergonomic Side-by-Side Card) */}
         {currentMovie ? (
-          <div className="bg-[#090d1a] border-t-2 border-amber-600/70 p-4 sm:p-5">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-              <div className="lg:col-span-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="bg-[#090d1a] border-t-2 border-amber-600/70 p-3 sm:p-5">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4">
+              {/* Left: Poster + Movie Info (Side-by-side even on mobile!) */}
+              <div className="flex flex-row items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                 <div
                   onClick={() => onSelectMovie(currentMovie)}
-                  className="relative w-20 sm:w-24 aspect-[2/3] border-2 border-amber-400 bg-black p-0.5 shadow-[0_0_25px_rgba(245,158,11,0.3)] shrink-0 cursor-pointer group overflow-hidden"
+                  className="relative w-18 sm:w-24 aspect-[2/3] border-2 border-amber-400 bg-black p-0.5 shadow-[0_0_20px_rgba(245,158,11,0.28)] shrink-0 cursor-pointer group overflow-hidden"
                 >
                   {currentMovie.customPosterUrl ? (
                     <img
@@ -1059,71 +1002,60 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
                   )}
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-vt tracking-widest uppercase">
-                    <span
-                      className={`px-2 py-0.5 border ${
-                        currentIsHorror
-                          ? 'bg-red-950/80 border-red-700/80 text-red-200'
-                          : 'bg-amber-950/80 border-amber-600/80 text-amber-200'
-                      }`}
-                    >
-                      {currentMovie.tapeNumber}
-                    </span>
-                    <span className="px-2 py-0.5 bg-[#f5c518] text-black font-bold flex items-center gap-1">
+                <div className="space-y-1 min-w-0 flex-1">
+                  {/* Compact Metadata Row */}
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs font-vt tracking-wider uppercase">
+                    <span className="px-1.5 py-0.5 bg-[#f5c518] text-black font-bold flex items-center gap-1">
                       <Star className="w-3 h-3 fill-black text-black" />
-                      IMDb {currentMovie.imdbRating || '7.2'}/10
+                      {currentMovie.imdbRating || '7.2'}
                     </span>
-                    <span className="text-amber-300">{currentMovie.subgenre}</span>
+                    <span className="text-amber-300 truncate">{currentMovie.subgenre}</span>
                     <span className="text-zinc-500">•</span>
                     <span className="text-zinc-300">
                       {currentMovie.year} ({currentMovie.duration})
                     </span>
 
                     {currentIsHorror ? (
-                      <span className="flex items-center gap-1 text-red-400 ml-1">
+                      <span className="hidden sm:inline-flex items-center gap-1 text-red-400 ml-1">
                         <Activity className="w-3.5 h-3.5 animate-pulse" />
-                        Terrômetro: {currentMovie.bpm} BPM ({currentMovie.fearLevel}/5)
+                        {currentMovie.bpm} BPM ({currentMovie.fearLevel}/5)
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1 text-amber-300 ml-1">
+                      <span className="hidden sm:inline-flex items-center gap-1 text-amber-300 ml-1">
                         <Film className="w-3.5 h-3.5 text-amber-400" />
-                        Cinêmetro VIP ★ {currentMovie.fearLevel}/5
+                        Cinêmetro ★ {currentMovie.fearLevel}/5
                       </span>
                     )}
                   </div>
 
-                  <h2 className="font-gothic text-xl sm:text-3xl text-white">
+                  <h2 className="font-gothic text-lg sm:text-3xl text-white leading-tight truncate">
                     {currentMovie.title}
                   </h2>
 
-                  <p className="font-serif-horror text-sm sm:text-base text-zinc-300 line-clamp-2 max-w-2xl">
+                  <p className="font-serif-horror text-xs sm:text-base text-zinc-300 line-clamp-2 max-w-2xl leading-snug">
                     {currentMovie.synopsis}
                   </p>
 
-                  {/* Streaming & Rental Badges */}
-                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                    <span className="font-pixel text-[8px] text-cyan-300 uppercase tracking-wider flex items-center gap-1 mr-1">
-                      <Tv className="w-3 h-3 text-cyan-400" />
-                      <span>Onde assistir:</span>
-                    </span>
+                  {/* Compact Streaming & Rental Badges */}
+                  <div className="flex items-center gap-1.5 pt-1 overflow-x-auto no-scrollbar">
+                    <Tv className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                     {getMovieStreamingOffers(currentMovie).map((offer, idx) => {
                       const isSub = offer.type === 'subscription';
                       return (
                         <span
                           key={`${offer.platform}-${idx}`}
-                          className={`px-2 py-0.5 font-vt text-xs border flex items-center gap-1 ${
+                          className={`px-2 py-0.5 font-vt text-xs border flex items-center gap-1 shrink-0 ${
                             isSub
                               ? 'bg-emerald-950/50 border-emerald-600/70 text-emerald-200'
                               : 'bg-amber-950/50 border-amber-600/70 text-amber-200'
                           }`}
                         >
                           <span>{isSub ? '🟢' : '🟡'}</span>
-                          <strong>{offer.platform}:</strong>
-                          <span>
+                          <strong>{offer.platform}</strong>
+                          <span className="hidden sm:inline">
                             {isSub
-                              ? 'Incluso na assinatura'
-                              : offer.priceInfo || 'Aluguel Digital'}
+                              ? '• Catálogo'
+                              : `• ${offer.priceInfo || 'Aluguel'}`}
                           </span>
                         </span>
                       );
@@ -1132,96 +1064,92 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
                 </div>
               </div>
 
-              <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5 justify-end">
-                <button
-                  onClick={() => {
-                    soundEngine.playRomanticChime();
-                    onSelectMovie(currentMovie);
-                  }}
-                  className="px-4 py-2.5 bg-[#161f38] hover:bg-[#1f2d52] border border-amber-500/80 text-amber-200 font-pixel text-[10px] tracking-wider uppercase flex items-center justify-center gap-2 transition cursor-pointer"
-                >
-                  <Eye className="w-4 h-4 text-amber-400" />
-                  <span>Ficha do Filme &amp; Streaming</span>
-                </button>
-
+              {/* Right: Clean Single-Row Action Bar on Mobile, Stacked on Desktop */}
+              <div className="flex flex-row lg:flex-col items-center lg:items-stretch gap-2 shrink-0 pt-1 lg:pt-0 border-t border-amber-950/60 lg:border-t-0">
                 <button
                   onClick={() => onDirectConfirmMovie(currentMovie)}
-                  className={`px-4 py-3 border-2 text-white font-pixel text-[10px] tracking-wider uppercase flex items-center justify-center gap-2 transition cursor-pointer ${
+                  className={`flex-1 lg:flex-initial px-3.5 sm:px-4 py-2.5 border-2 text-white font-pixel text-[9px] sm:text-[10px] tracking-wider uppercase flex items-center justify-center gap-1.5 transition cursor-pointer ${
                     currentIsHorror
-                      ? 'bg-[#6b0913] hover:bg-[#991b1b] border-red-500 shadow-[0_0_25px_rgba(220,38,38,0.45)]'
-                      : 'bg-amber-700 hover:bg-amber-600 border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.45)]'
+                      ? 'bg-[#6b0913] hover:bg-[#991b1b] border-red-500 shadow-[0_0_20px_rgba(220,38,38,0.4)]'
+                      : 'bg-amber-700 hover:bg-amber-600 border-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.4)]'
                   }`}
                 >
                   {currentIsHorror ? (
-                    <Flame className="w-4 h-4 text-amber-300 animate-pulse" />
+                    <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-300 animate-pulse shrink-0" />
                   ) : (
-                    <Film className="w-4 h-4 text-amber-200" />
+                    <Film className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-200 shrink-0" />
                   )}
-                  <span>Escolher Este Filme</span>
+                  <span>Escolher</span>
                 </button>
 
-                {onRemoveMovieFromWall && !currentMovie.isSecret && (
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => {
-                      soundEngine.playDoorCreak();
-                      onRemoveMovieFromWall(currentMovie.id);
+                      soundEngine.playRomanticChime();
+                      onSelectMovie(currentMovie);
                     }}
-                    className="px-4 py-2 bg-[#160b12] hover:bg-red-950/90 border border-red-900/70 hover:border-red-500 text-red-300 hover:text-white font-vt text-sm tracking-wider uppercase flex items-center justify-center gap-1.5 transition cursor-pointer"
-                    title="Retirar este cartaz da galeria"
+                    className="px-3 sm:px-4 py-2.5 bg-[#161f38] hover:bg-[#1f2d52] border border-amber-500/80 text-amber-200 font-pixel text-[9px] sm:text-[10px] tracking-wider uppercase flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    title="Abrir ficha completa e plataformas de streaming"
                   >
-                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                    <span>Excluir Quadro da Galeria</span>
+                    <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 shrink-0" />
+                    <span>Ficha</span>
                   </button>
-                )}
+
+                  {onRemoveMovieFromWall && !currentMovie.isSecret && (
+                    <button
+                      onClick={() => {
+                        soundEngine.playDoorCreak();
+                        onRemoveMovieFromWall(currentMovie.id);
+                      }}
+                      className="p-2.5 bg-[#160b12] hover:bg-red-950/90 border border-red-900/70 hover:border-red-500 text-red-400 hover:text-white transition cursor-pointer"
+                      title={`Retirar "${currentMovie.title}" da galeria`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="bg-[#090d1a] border-t-2 border-amber-600/70 p-6 text-center space-y-3">
-            <div className="font-gothic text-xl sm:text-2xl text-amber-200">
+          <div className="bg-[#090d1a] border-t-2 border-amber-600/70 p-5 text-center space-y-3">
+            <div className="font-gothic text-lg sm:text-2xl text-amber-200">
               A Galeria do Cinema está Vazia
             </div>
-            <p className="font-serif-horror text-sm sm:text-base text-zinc-400 max-w-xl mx-auto">
-              Todos os cartazes foram retirados. Converse com o Concierge George para adicionar qualquer filme novo (de qualquer gênero!) na parede!
+            <p className="font-serif-horror text-xs sm:text-base text-zinc-400 max-w-xl mx-auto">
+              Converse com o Concierge George para adicionar qualquer filme novo na parede!
             </p>
             <button
               onClick={() => {
                 soundEngine.playRomanticChime();
                 onOpenButlerAgent();
               }}
-              className="px-5 py-2.5 bg-amber-900 hover:bg-amber-800 border border-amber-400 text-amber-100 font-pixel text-[10px] uppercase tracking-wider inline-flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2.5 bg-amber-900 hover:bg-amber-800 border border-amber-400 text-amber-100 font-pixel text-[9px] sm:text-[10px] uppercase tracking-wider inline-flex items-center gap-2 cursor-pointer"
             >
               <Clapperboard className="w-4 h-4 text-amber-300" />
-              <span>🎬 Falar com George para Adicionar Filmes</span>
+              <span>🎬 Falar com George</span>
             </button>
           </div>
         )}
 
-        {/* Quick Corridor Mini-Map Strip */}
-        <div className="bg-[#050811] border-t border-amber-900/50 px-3.5 py-2.5 flex items-center gap-2 overflow-x-auto">
-          <span className="font-pixel text-[8px] text-amber-400/90 uppercase tracking-wider shrink-0 mr-1">
-            Em Cartaz ({visibleMovies.length}):
-          </span>
-          {visibleMovies.length === 0 && (
-            <span className="font-vt text-sm text-zinc-500 italic">
-              Nenhum cartaz pendurado — adicione novos filmes com o George!
+        {/* Clean Single-Line Carousel Strip */}
+        {visibleMovies.length > 0 && (
+          <div className="bg-[#050811] border-t border-amber-900/50 px-3 py-2 flex items-center gap-1.5 overflow-x-auto">
+            <span className="font-pixel text-[8px] text-amber-400/90 uppercase tracking-wider shrink-0 mr-1">
+              Cartazes ({visibleMovies.length}):
             </span>
-          )}
-          {visibleMovies.map((m, idx) => {
-            const isCurrent = idx === activePaintingIdx;
-            const mHorror = isHorrorMovie(m);
-            return (
-              <div
-                key={m.id}
-                className={`border font-vt text-sm flex items-center shrink-0 transition ${
-                  isCurrent
-                    ? 'bg-amber-950/80 border-amber-400 text-amber-100 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
-                    : 'bg-[#0c1222] border-zinc-800 text-zinc-400 hover:border-amber-600 hover:text-zinc-200'
-                }`}
-              >
+            {visibleMovies.map((m, idx) => {
+              const isCurrent = idx === activePaintingIdx;
+              const mHorror = isHorrorMovie(m);
+              return (
                 <button
+                  key={m.id}
                   onClick={() => walkToPainting(idx, isCurrent)}
-                  className="px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
+                  className={`px-2.5 py-1 border font-vt text-xs sm:text-sm flex items-center gap-1.5 shrink-0 transition cursor-pointer ${
+                    isCurrent
+                      ? 'bg-amber-950/80 border-amber-400 text-amber-100 shadow-[0_0_10px_rgba(245,158,11,0.28)]'
+                      : 'bg-[#0c1222] border-zinc-800 text-zinc-400 hover:border-amber-600 hover:text-zinc-200'
+                  }`}
                 >
                   {mHorror ? (
                     <Skull
@@ -1240,23 +1168,10 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
                     {idx + 1}. {m.title}
                   </span>
                 </button>
-                {onRemoveMovieFromWall && !m.isSecret && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      soundEngine.playDoorCreak();
-                      onRemoveMovieFromWall(m.id);
-                    }}
-                    className="px-1.5 py-1 border-l border-zinc-800/80 text-red-400 hover:text-white hover:bg-red-900/80 transition cursor-pointer"
-                    title={`Excluir "${m.title}" da parede`}
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

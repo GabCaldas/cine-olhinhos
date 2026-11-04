@@ -363,20 +363,20 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
       <div className="pointer-events-none absolute inset-0 vignette-heavy opacity-75" />
 
       {/* Top HUD Bar */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-8 pt-4 flex items-center justify-end">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-3 sm:px-8 pt-3 flex items-center justify-end">
         <button
           onClick={handleToggleAudio}
-          className="px-3 py-1.5 bg-black/80 hover:bg-amber-950/60 border border-amber-500/60 text-amber-100 font-vt text-base flex items-center gap-2 transition cursor-pointer"
+          className="px-2.5 py-1 bg-black/80 hover:bg-amber-950/60 border border-amber-500/60 text-amber-100 font-vt text-sm sm:text-base flex items-center gap-1.5 transition cursor-pointer"
         >
           {isMuted ? (
             <>
               <VolumeX className="w-4 h-4 text-amber-400" />
-              <span>Som: OFF</span>
+              <span className="hidden sm:inline">Som: OFF</span>
             </>
           ) : (
             <>
               <Volume2 className="w-4 h-4 text-amber-400" />
-              <span>Som: ON</span>
+              <span className="hidden sm:inline">Som: ON</span>
             </>
           )}
         </button>
@@ -384,18 +384,18 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
 
       {/* Upper-Center Title & Subtitle */}
       <div
-        className={`relative z-10 max-w-3xl mx-auto px-4 pt-2 text-center pointer-events-none transition-opacity duration-700 ${
+        className={`relative z-10 max-w-2xl mx-auto px-3 pt-1 text-center pointer-events-none transition-opacity duration-700 ${
           isEnteringCinema ? 'opacity-0' : 'opacity-100'
         }`}
       >
-        <div className="bg-[#090d1a]/88 backdrop-blur-[2px] border-2 border-amber-500/80 px-6 sm:px-10 py-5 shadow-[0_0_55px_rgba(0,0,0,0.95)] space-y-2.5">
-          <div className="font-pixel text-[9px] sm:text-[10px] text-amber-400 tracking-[0.25em] uppercase">
-            ★ GRAND CINE OLHINHOS • SESSÃO EXCLUSIVA ★
+        <div className="bg-[#090d1a]/85 backdrop-blur-[2px] border border-amber-500/80 px-4 sm:px-8 py-2.5 sm:py-4 shadow-[0_0_45px_rgba(0,0,0,0.95)] space-y-1 sm:space-y-2">
+          <div className="font-pixel text-[8px] sm:text-[10px] text-amber-400 tracking-[0.2em] uppercase">
+            ★ GRAND CINE OLHINHOS ★
           </div>
-          <h1 className="font-gothic text-xl sm:text-3xl md:text-4xl text-white tracking-wider leading-snug">
+          <h1 className="font-gothic text-lg sm:text-3xl md:text-4xl text-white tracking-wider leading-snug">
             Uma Lista de Filmes para Aninha
           </h1>
-          <p className="font-serif-horror italic text-base sm:text-xl text-amber-300 tracking-wide">
+          <p className="font-serif-horror italic text-sm sm:text-lg text-amber-300 tracking-wide">
             Feito com carinho! - Caldas
           </p>
         </div>
@@ -403,7 +403,7 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
 
       {/* Bottom Interactive Prompt to Enter the Cinema */}
       <div
-        className={`relative z-10 pb-7 sm:pb-10 px-4 flex flex-col items-center gap-3 transition-opacity duration-500 ${
+        className={`relative z-10 pb-6 sm:pb-10 px-4 flex flex-col items-center gap-2.5 transition-opacity duration-500 ${
           isEnteringCinema ? 'opacity-0 pointer-events-none' : 'opacity-100'
         }`}
       >
@@ -414,13 +414,13 @@ export const IntroScreen: React.FC<IntroScreenProps> = ({
             soundEngine.playRomanticChime();
           }}
           onMouseLeave={() => setIsDoorHovered(false)}
-          className="group px-8 py-4 bg-[#450a14]/95 hover:bg-[#7f1d1d] border-2 border-amber-400 text-white font-pixel text-xs sm:text-sm tracking-[0.2em] uppercase shadow-[0_0_35px_rgba(245,158,11,0.5)] hover:shadow-[0_0_55px_rgba(251,191,36,0.9)] transition-all flex items-center gap-3 cursor-pointer"
+          className="group px-6 sm:px-8 py-3 sm:py-4 bg-[#450a14]/95 hover:bg-[#7f1d1d] border-2 border-amber-400 text-white font-pixel text-[11px] sm:text-sm tracking-[0.18em] uppercase shadow-[0_0_35px_rgba(245,158,11,0.5)] hover:shadow-[0_0_55px_rgba(251,191,36,0.9)] transition-all flex items-center gap-2.5 cursor-pointer"
         >
-          <Film className="w-5 h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+          <Film className="w-4 h-4 sm:w-5 sm:h-5 text-amber-300 group-hover:scale-110 transition-transform" />
           <span>ENTRAR NO CINEMA</span>
         </button>
 
-        <span className="px-3 py-1 bg-black/80 border border-amber-900/60 font-vt text-sm sm:text-base text-amber-100 tracking-widest">
+        <span className="hidden sm:inline-block px-3 py-1 bg-black/80 border border-amber-900/60 font-vt text-sm sm:text-base text-amber-100 tracking-widest">
           Clique nas portas do cinema ou no botão acima para entrar com {coupleConfig.him.name} &lt;3
         </span>
       </div>

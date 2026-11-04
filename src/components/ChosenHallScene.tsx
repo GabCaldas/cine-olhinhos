@@ -19,12 +19,10 @@ import {
   ChevronRight,
   Eye,
   Flame,
-  Footprints,
   Heart,
   Skull,
   Trash2,
   Star,
-  X,
 } from 'lucide-react';
 
 interface ChosenHallSceneProps {
@@ -569,54 +567,30 @@ export const ChosenHallScene: React.FC<ChosenHallSceneProps> = ({
               <button
                 onClick={() => walkToFrame(activeIdx - 1)}
                 disabled={activeIdx <= 0}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/80 hover:bg-amber-950/90 disabled:opacity-25 border border-amber-700/70 text-amber-200 transition cursor-pointer"
+                className="absolute left-1.5 sm:left-2.5 top-1/2 -translate-y-1/2 p-1.5 sm:p-2.5 bg-black/80 hover:bg-amber-950/90 disabled:opacity-20 border border-amber-700/70 text-amber-200 transition cursor-pointer"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <button
                 onClick={() => walkToFrame(activeIdx + 1)}
                 disabled={activeIdx >= chosenRecords.length - 1}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-2 sm:p-3 bg-black/80 hover:bg-amber-950/90 disabled:opacity-25 border border-amber-700/70 text-amber-200 transition cursor-pointer"
+                className="absolute right-1.5 sm:right-2.5 top-1/2 -translate-y-1/2 p-1.5 sm:p-2.5 bg-black/80 hover:bg-amber-950/90 disabled:opacity-20 border border-amber-700/70 text-amber-200 transition cursor-pointer"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
             </>
           )}
-
-          <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-black/80 border border-zinc-800 px-2.5 py-1">
-            <Footprints className="w-3.5 h-3.5 text-amber-400 mr-1" />
-            <button
-              onMouseDown={() => (keysRef.current.left = true)}
-              onMouseUp={() => (keysRef.current.left = false)}
-              onMouseLeave={() => (keysRef.current.left = false)}
-              onTouchStart={() => (keysRef.current.left = true)}
-              onTouchEnd={() => (keysRef.current.left = false)}
-              className="px-2.5 py-0.5 bg-zinc-900 hover:bg-amber-950 border border-zinc-700 text-zinc-200 font-pixel text-[10px] cursor-pointer"
-            >
-              ◄
-            </button>
-            <button
-              onMouseDown={() => (keysRef.current.right = true)}
-              onMouseUp={() => (keysRef.current.right = false)}
-              onMouseLeave={() => (keysRef.current.right = false)}
-              onTouchStart={() => (keysRef.current.right = true)}
-              onTouchEnd={() => (keysRef.current.right = false)}
-              className="px-2.5 py-0.5 bg-zinc-900 hover:bg-amber-950 border border-zinc-700 text-zinc-200 font-pixel text-[10px] cursor-pointer"
-            >
-              ►
-            </button>
-          </div>
         </div>
 
-        {/* Bottom Details of Active Chosen Movie */}
+        {/* Bottom Details of Active Chosen Movie (Clean Side-by-Side Layout on Mobile & Desktop) */}
         {activeRecord ? (
           <>
-            <div className="bg-[#0d0814] border-t-2 border-amber-800/70 p-4 sm:p-5">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                <div className="lg:col-span-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="bg-[#0d0814] border-t-2 border-amber-800/70 p-3 sm:p-5">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4">
+                <div className="flex flex-row items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                   <div
                     onClick={() => onInspectMovie(activeRecord.movie)}
-                    className="w-20 sm:w-24 aspect-[2/3] border-2 border-amber-500 bg-black p-0.5 shadow-[0_0_25px_rgba(245,158,11,0.35)] shrink-0 cursor-pointer overflow-hidden"
+                    className="w-18 sm:w-24 aspect-[2/3] border-2 border-amber-500 bg-black p-0.5 shadow-[0_0_20px_rgba(245,158,11,0.3)] shrink-0 cursor-pointer overflow-hidden"
                   >
                     {activeRecord.movie.customPosterUrl ? (
                       <img
@@ -631,99 +605,79 @@ export const ChosenHallScene: React.FC<ChosenHallSceneProps> = ({
                     )}
                   </div>
 
-                  <div className="space-y-1.5">
-                    <div className="flex flex-wrap items-center gap-2 text-xs font-vt tracking-widest uppercase">
-                      <span className="px-2 py-0.5 bg-amber-950/90 border border-amber-600/80 text-amber-200 flex items-center gap-1">
+                  <div className="space-y-1 min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-1.5 text-xs font-vt tracking-wider uppercase">
+                      <span className="px-1.5 py-0.5 bg-amber-950/90 border border-amber-600/80 text-amber-200 flex items-center gap-1">
                         <Award className="w-3 h-3 text-amber-400" />
                         SESSÃO #{activeRecord.sessionNumber}
                       </span>
-                      <span className="px-2 py-0.5 bg-[#f5c518] text-black font-bold flex items-center gap-1">
+                      <span className="px-1.5 py-0.5 bg-[#f5c518] text-black font-bold flex items-center gap-1">
                         <Star className="w-3 h-3 fill-black text-black" />
-                        IMDb {activeRecord.movie.imdbRating || '7.2'}/10
+                        {activeRecord.movie.imdbRating || '7.2'}
                       </span>
-                      <span className="text-red-300 flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" />
-                        Escolhido em {activeRecord.chosenAtFormatted}
+                      <span className="text-amber-300/90 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {activeRecord.chosenAtFormatted}
                       </span>
                     </div>
 
-                    <h2 className="font-gothic text-xl sm:text-3xl text-white glitch-text">
+                    <h2 className="font-gothic text-lg sm:text-3xl text-white truncate">
                       {activeRecord.movie.title} ({activeRecord.movie.year})
                     </h2>
 
-                    {activeRecord.movie.aiVerdict && (
-                      <p className="font-vt text-sm sm:text-base text-amber-300/95">
-                        ⚡ {activeRecord.movie.aiVerdict}
-                      </p>
-                    )}
-
-                    <p className="font-serif-horror text-sm text-zinc-300 line-clamp-2">
+                    <p className="font-serif-horror text-xs sm:text-sm text-zinc-300 line-clamp-2">
                       {activeRecord.movie.synopsis}
                     </p>
                   </div>
                 </div>
 
-                <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-2.5 justify-end">
+                <div className="flex flex-row lg:flex-col items-center lg:items-stretch gap-2 shrink-0 pt-1 lg:pt-0 border-t border-amber-950/60 lg:border-t-0">
                   <button
                     onClick={() => onInspectMovie(activeRecord.movie)}
-                    className="px-4 py-2.5 bg-amber-900/60 hover:bg-amber-800/80 border border-amber-500 text-amber-100 font-pixel text-[10px] tracking-wider uppercase flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="flex-1 lg:flex-initial px-4 py-2.5 bg-amber-900/60 hover:bg-amber-800/80 border border-amber-500 text-amber-100 font-pixel text-[9px] sm:text-[10px] tracking-wider uppercase flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <Eye className="w-4 h-4" />
-                    <span>Inspecionar Quadro</span>
+                    <span>Ficha do Filme</span>
                   </button>
 
                   <button
                     onClick={() => handleRemoveWithSound(activeRecord.recordId)}
-                    className="px-4 py-2.5 bg-[#3b0912] hover:bg-red-800 border-2 border-red-500/80 text-red-100 font-pixel text-[10px] tracking-wider uppercase flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(220,38,38,0.3)] transition cursor-pointer"
-                    title="Remover este filme do Salão dos Escolhidos (Tecla Delete)"
+                    className="px-3.5 py-2.5 bg-[#3b0912] hover:bg-red-800 border border-red-500/80 text-red-100 font-pixel text-[9px] sm:text-[10px] tracking-wider uppercase flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    title="Remover este filme da Sala VIP"
                   >
                     <Trash2 className="w-4 h-4 text-red-300" />
-                    <span>Remover do Salão</span>
+                    <span className="hidden sm:inline">Remover</span>
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Quick Mini-Map Strip of Chosen Movies with direct [X] Remove action */}
-            <div className="bg-[#07040b] border-t border-amber-950/70 px-3.5 py-2.5 flex items-center gap-2 overflow-x-auto">
+            {/* Clean Strip of Chosen Movies */}
+            <div className="bg-[#07040b] border-t border-amber-950/70 px-3 py-2 flex items-center gap-1.5 overflow-x-auto">
               <span className="font-pixel text-[8px] text-amber-500/80 uppercase tracking-wider shrink-0 mr-1">
-                Quadros no Salão:
+                Sessões ({chosenRecords.length}):
               </span>
               {chosenRecords.map((rec, idx) => {
                 const isCurrent = idx === activeIdx;
                 return (
-                  <div
+                  <button
                     key={rec.recordId}
-                    className={`flex items-center border font-vt text-sm shrink-0 transition ${
+                    onClick={() => walkToFrame(idx, false)}
+                    className={`px-2.5 py-1 border font-vt text-xs sm:text-sm flex items-center gap-1.5 shrink-0 transition cursor-pointer ${
                       isCurrent
-                        ? 'bg-[#3b1a08] border-amber-400 text-amber-100 shadow-[0_0_12px_rgba(245,158,11,0.3)]'
+                        ? 'bg-[#3b1a08] border-amber-400 text-amber-100 shadow-[0_0_10px_rgba(245,158,11,0.3)]'
                         : 'bg-[#110918] border-zinc-800 text-zinc-400 hover:border-amber-700 hover:text-zinc-200'
                     }`}
                   >
-                    <button
-                      onClick={() => walkToFrame(idx, false)}
-                      className="px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Award
-                        className={`w-3 h-3 ${
-                          isCurrent ? 'text-amber-400' : 'text-amber-700'
-                        }`}
-                      />
-                      <span>
-                        #{rec.sessionNumber} {rec.movie.title}
-                      </span>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveWithSound(rec.recordId);
-                      }}
-                      className="px-1.5 py-1 text-zinc-500 hover:text-red-400 hover:bg-red-950/60 border-l border-zinc-800/80 transition cursor-pointer"
-                      title={`Remover "${rec.movie.title}" do Salão`}
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                    <Award
+                      className={`w-3 h-3 ${
+                        isCurrent ? 'text-amber-400' : 'text-amber-700'
+                      }`}
+                    />
+                    <span>
+                      #{rec.sessionNumber} {rec.movie.title}
+                    </span>
+                  </button>
                 );
               })}
             </div>
