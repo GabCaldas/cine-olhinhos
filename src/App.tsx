@@ -25,7 +25,7 @@ import {
   isBadSynopsis,
   persistMoviesEverywhere,
 } from './utils/movieAutoFill';
-import { analyzeMovieHorrorAI } from './utils/horrorAiAnalyzer';
+import { analyzeMovieHorrorAI, isHorrorMovie } from './utils/horrorAiAnalyzer';
 import {
   pushStateToCloud,
   subscribeToLiveCloudSync,
@@ -153,6 +153,19 @@ export function App() {
   useEffect(() => {
     let cancelled = false;
     async function enrichAndRepairMovies() {
+      const needsTemplateRepair = (m: MovieTemplate) => {
+        const strictHorror = isHorrorMovie({
+          title: m.title,
+          originalTitle: m.originalTitle,
+          synopsis: m.synopsis,
+          isSecret: m.isSecret,
+        });
+        if (!strictHorror && (m.isHorror === true || m.subgenre?.startsWith('Terror'))) {
+          return true;
+        }
+        return false;
+      };
+
       const toRepairMovies = movies.filter(
         (m) =>
           !m.isSecret &&
@@ -161,13 +174,16 @@ export function App() {
             !m.aiVerdict ||
             !m.imdbRating ||
             isBadSynopsis(m.synopsis) ||
-            !m.streamingPlatforms?.length)
+            !m.streamingPlatforms?.length ||
+            needsTemplateRepair(m))
       );
       const toRepairChosen = chosenRecords.filter(
         (r) =>
           !r.movie.isSecret &&
           !repairedIdsRef.current.has(r.recordId) &&
-          (isBadSynopsis(r.movie.synopsis) || !r.movie.streamingPlatforms?.length)
+          (isBadSynopsis(r.movie.synopsis) ||
+            !r.movie.streamingPlatforms?.length ||
+            needsTemplateRepair(r.movie))
       );
 
       if (toRepairMovies.length === 0 && toRepairChosen.length === 0) return;
@@ -197,15 +213,39 @@ export function App() {
               year: curated.year || m.year,
               duration: curated.duration || m.duration,
               imdbRating: curated.imdbRating || m.imdbRating,
+              isHorror: ai.isHorror,
               subgenre: ai.subgenre,
               fearLevel: ai.fearLevel,
               bpm: ai.bpm,
               aiVerdict: ai.aiVerdict,
               aiBreakdown: ai.aiBreakdown,
               tags: ai.tags,
+              curseWhisper: ai.curseWhisper,
               synopsis: curated.synopsis,
               streamingPlatforms: curated.streamingPlatforms,
               customPosterUrl: m.customPosterUrl || curated.posterUrl,
+            },
+          };
+        }
+
+        if (needsTemplateRepair(m) && m.customPosterUrl && !isBadSynopsis(m.synopsis)) {
+          const ai = analyzeMovieHorrorAI({
+            title: m.title,
+            originalTitle: m.originalTitle,
+            synopsis: m.synopsis,
+          });
+          return {
+            didChange: true,
+            movie: {
+              ...m,
+              isHorror: ai.isHorror,
+              subgenre: ai.subgenre,
+              fearLevel: ai.fearLevel,
+              bpm: ai.bpm,
+              aiVerdict: ai.aiVerdict,
+              aiBreakdown: ai.aiBreakdown,
+              tags: ai.tags,
+              curseWhisper: ai.curseWhisper,
             },
           };
         }
@@ -228,12 +268,14 @@ export function App() {
                 didChange: true,
                 movie: {
                   ...m,
+                  isHorror: ai.isHorror,
                   subgenre: ai.subgenre,
                   fearLevel: ai.fearLevel,
                   bpm: ai.bpm,
                   aiVerdict: ai.aiVerdict,
                   aiBreakdown: ai.aiBreakdown,
                   tags: ai.tags,
+                  curseWhisper: ai.curseWhisper,
                   synopsis: generatedSynopsis,
                 },
               };
@@ -250,12 +292,14 @@ export function App() {
                 year: best.year || m.year,
                 duration: best.duration || m.duration,
                 imdbRating: best.imdbRating || m.imdbRating,
+                isHorror: best.isHorror,
                 subgenre: best.subgenre || m.subgenre,
                 fearLevel: best.fearLevel,
                 bpm: best.bpm,
                 aiVerdict: best.aiVerdict,
                 aiBreakdown: best.aiBreakdown,
                 tags: best.tags?.length ? best.tags : m.tags,
+                curseWhisper: best.curseWhisper || m.curseWhisper,
                 synopsis: !isBadSynopsis(best.synopsis) ? best.synopsis : m.synopsis,
                 streamingPlatforms:
                   best.streamingPlatforms?.length

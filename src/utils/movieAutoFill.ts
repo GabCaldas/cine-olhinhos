@@ -527,6 +527,22 @@ const CURATED_HORROR_DB: Array<{
       { platform: 'Apple TV (iTunes)', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 9,90)' },
     ],
   },
+  {
+    keywords: ['you can see everything', 'everything you can see'],
+    title: 'You Can See Everything',
+    originalTitle: 'You Can See Everything',
+    year: 2026,
+    duration: '1h 45min',
+    imdbRating: '7.4',
+    director: 'Nathan Fielder & Lance Oppenheim',
+    posterUrl: '',
+    synopsis:
+      'Neste documentário ácido, provocativo e hipnótico produzido pela A24 e dirigido por Nathan Fielder e Lance Oppenheim, os limites entre observação, espetáculo e vida real se misturam quando câmeras acompanham até onde as pessoas estão dispostas a ir quando sabem — ou esquecem — que estão sendo vistas.',
+    streamingPlatforms: [
+      { platform: 'Cinemas / Lançamento A24', type: 'rent', priceInfo: 'Exibição Exclusiva / Pré-Venda VOD' },
+      { platform: 'Apple TV / Prime Video Store', type: 'rent', priceInfo: 'Lançamento Digital em breve' },
+    ],
+  },
 ];
 
 function normalizeStr(s: string): string {
@@ -802,6 +818,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
               ? String(c.duration)
               : matchedCurated?.duration || String(c.duration || '1h 45min'),
           imdbRating: String(matchedCurated?.imdbRating || c.imdbRating || '7.1'),
+          isHorror: ai.isHorror,
           subgenre: ai.subgenre,
           fearLevel: ai.fearLevel,
           bpm: ai.bpm,
@@ -898,6 +915,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
           year: item.releaseDate ? new Date(item.releaseDate).getFullYear() : 2024,
           duration: matchedCurated?.duration || duration,
           imdbRating: matchedCurated?.imdbRating || '7.1',
+          isHorror: ai.isHorror,
           subgenre: ai.subgenre,
           fearLevel: ai.fearLevel,
           bpm: ai.bpm,
@@ -940,6 +958,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
             year: Number(item.y || matchedCurated?.year || 2024),
             duration: matchedCurated?.duration || '1h 45min',
             imdbRating: matchedCurated?.imdbRating || '7.0',
+            isHorror: ai.isHorror,
             subgenre: ai.subgenre,
             fearLevel: ai.fearLevel,
             bpm: ai.bpm,
@@ -972,6 +991,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
       year: curatedHit.year,
       duration: curatedHit.duration,
       imdbRating: curatedHit.imdbRating,
+      isHorror: ai.isHorror,
       subgenre: ai.subgenre,
       fearLevel: ai.fearLevel,
       bpm: ai.bpm,
@@ -992,6 +1012,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
       year: 2024,
       duration: '1h 45min',
       imdbRating: '7.0',
+      isHorror: ai.isHorror,
       subgenre: ai.subgenre,
       fearLevel: ai.fearLevel,
       bpm: ai.bpm,
@@ -1024,6 +1045,7 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
             originalTitle: item.originalTitle,
             synopsis: enriched.synopsis,
           });
+          item.isHorror = refreshedAi.isHorror;
           item.subgenre = refreshedAi.subgenre;
           item.fearLevel = refreshedAi.fearLevel;
           item.bpm = refreshedAi.bpm;
@@ -1032,7 +1054,9 @@ export async function autoFillMovieByName(query: string): Promise<AutoFillMovieR
           item.tags = refreshedAi.tags;
           item.curseWhisper = refreshedAi.curseWhisper;
         } else if (!item.synopsis || isBadSynopsis(item.synopsis)) {
-          item.synopsis = `À medida que segredos ocultos vêm à tona em "${item.title}", forças sombrias e inexplicáveis transformam a realidade em um pesadelo sem volta.`;
+          item.synopsis = item.isHorror
+            ? `À medida que segredos sombrios vêm à tona em "${item.title}", forças inexplicáveis transformam a realidade em um pesadelo sem volta.`
+            : `Em "${item.title}", uma jornada cinematográfica envolvente combina direção criativa, personagens marcantes e reviravoltas inesquecíveis na tela grande.`;
         }
 
         if (enriched?.streamingPlatforms?.length && !item.streamingPlatforms?.length) {

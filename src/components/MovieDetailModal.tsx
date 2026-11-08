@@ -54,13 +54,14 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
       title: movie.title,
       originalTitle: movie.originalTitle,
       synopsis: movie.synopsis,
-      genre: movie.subgenre,
+      genre: movieIsHorror ? movie.subgenre : '',
     });
     if (movie.aiBreakdown && movie.aiVerdict && movieIsHorror) {
       return {
         fearLevel: movie.fearLevel,
         bpm: movie.bpm,
         subgenre: movie.subgenre,
+        tags: movie.tags,
         aiVerdict: movie.aiVerdict,
         aiBreakdown: movie.aiBreakdown,
       };
@@ -315,7 +316,7 @@ export const MovieDetailModal: React.FC<MovieDetailModalProps> = ({
 
               {/* Tags */}
               <div className="flex flex-wrap gap-1.5">
-                {movie.tags.map((tag) => (
+                {(movieIsHorror ? movie.tags : aiAnalysis.tags || movie.tags).map((tag) => (
                   <span
                     key={tag}
                     className={`px-2.5 py-0.5 border font-vt text-sm tracking-wider ${

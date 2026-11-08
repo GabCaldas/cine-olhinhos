@@ -56,6 +56,10 @@ const KNOWN_NON_HORROR_KEYWORDS = [
   'orgulho e preconceito',
   'mamma mia',
   'high school musical',
+  'you can see everything',
+  'everything you can see',
+  'nathan fielder',
+  'lance oppenheim',
 ];
 
 const KNOWN_HORROR_KEYWORDS = [
@@ -64,13 +68,14 @@ const KNOWN_HORROR_KEYWORDS = [
   'dark and the wicked',
   'saccharine',
   'frewaka',
-  'jacob',
+  'jacob\'s ladder',
+  'jacobs ladder',
   'alucinacoes do passado',
-  'heresy',
   'witte wieven',
   'the fly',
   'a mosca',
   'exorcist',
+  'o exorcista',
   'hereditario',
   'hereditary',
   'the witch',
@@ -78,19 +83,17 @@ const KNOWN_HORROR_KEYWORDS = [
   'a bruxa',
   'fale comigo',
   'talk to me',
-  'iluminado',
-  'shining',
+  'o iluminado',
+  'the shining',
   'invocacao do mal',
   'conjuring',
   'o chamado',
   'the ring',
-  'autopsia',
-  'jane doe',
-  'sorria',
-  'smile',
+  'autopsia de jane doe',
+  'autopsy of jane doe',
   'midsommar',
-  'substancia',
-  'substance',
+  'a substancia',
+  'the substance',
   'sinister',
   'a entidade',
   'it follows',
@@ -103,12 +106,10 @@ const KNOWN_HORROR_KEYWORDS = [
   'sobrenatural',
   'nosferatu',
   'longlegs',
-  'alien',
   'halloween',
   'sexta-feira 13',
   'friday the 13th',
   'jogos mortais',
-  'saw',
   'it a coisa',
   'evil dead',
   'a morte do demonio',
@@ -116,13 +117,36 @@ const KNOWN_HORROR_KEYWORDS = [
   'atividade paranormal',
   'cemiterio maldito',
   'pet sematary',
-  'corra',
   'get out',
-  'us',
-  'nope',
   'um lugar silencioso',
   'quiet place',
   'blair witch',
+];
+
+const STRICT_HORROR_PLOT_TERMS = [
+  'assombracao',
+  'assombrada',
+  'assombrado',
+  'possessao',
+  'possuido',
+  'possuida',
+  'exorcismo',
+  'exorcista',
+  'demonio',
+  'demoniaca',
+  'demoniaco',
+  'sobrenatural',
+  'paranormal',
+  'slasher',
+  'macabro',
+  'macabra',
+  'entidade maligna',
+  'maldicao mortal',
+  'bruxaria',
+  'mortos-vivos',
+  'zumbi',
+  'vampiro',
+  'lobisomem',
 ];
 
 export function isHorrorMovie(movie: {
@@ -135,17 +159,40 @@ export function isHorrorMovie(movie: {
   isSecret?: boolean;
 }): boolean {
   if (movie.isSecret) return false;
-  if (typeof movie.isHorror === 'boolean') return movie.isHorror;
 
   const combinedTitle = `${movie.title || ''} ${movie.originalTitle || ''}`
     .toLowerCase()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
 
   if (KNOWN_NON_HORROR_KEYWORDS.some((k) => combinedTitle.includes(k))) {
     return false;
   }
-  if (KNOWN_HORROR_KEYWORDS.some((k) => combinedTitle.includes(k))) {
+  if (
+    KNOWN_HORROR_KEYWORDS.some((k) => combinedTitle.includes(k)) ||
+    combinedTitle === 'us' ||
+    combinedTitle === 'nos' ||
+    combinedTitle === 'saw' ||
+    combinedTitle === 'sorria' ||
+    combinedTitle === 'smile' ||
+    combinedTitle === 'corra' ||
+    combinedTitle === 'heresy'
+  ) {
+    return true;
+  }
+
+  if (typeof movie.isHorror === 'boolean') return movie.isHorror;
+
+  const plotNorm = (movie.synopsis || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  const plotHorrorHits = STRICT_HORROR_PLOT_TERMS.filter((w) =>
+    plotNorm.includes(w)
+  ).length;
+  if (plotHorrorHits >= 1) {
     return true;
   }
 
@@ -154,49 +201,18 @@ export function isHorrorMovie(movie: {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
 
+  // Ignore auto-generated fallback "terror religioso & misterio" if the plot/title had 0 horror terms!
   if (
-    sub.includes('animacao') ||
-    sub.includes('comedia') ||
-    sub.includes('musical') ||
-    sub.includes('romance') ||
-    sub.includes('aventura') ||
-    sub.includes('familia')
-  ) {
-    return false;
-  }
-
-  if (
-    sub.includes('terror') ||
-    sub.includes('horror') ||
-    sub.includes('slasher') ||
-    sub.includes('sobrenatural') ||
-    sub.includes('folk') ||
-    sub.includes('ocult') ||
-    sub.includes('paranormal')
+    (sub.includes('slasher') ||
+      sub.includes('folk horror') ||
+      sub.includes('found footage') ||
+      sub.includes('paranormal')) &&
+    plotHorrorHits >= 1
   ) {
     return true;
   }
 
-  const full = `${combinedTitle} ${sub} ${(movie.synopsis || '').toLowerCase()}`
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '');
-
-  const horrorWords = [
-    'terror',
-    'horror',
-    'assombra',
-    'demon',
-    'exorcis',
-    'maldic',
-    'entidade',
-    'pesadelo',
-    'slasher',
-    'macabr',
-    'ocult',
-    'possess',
-    'sobrenatural',
-  ];
-  return horrorWords.some((w) => full.includes(w));
+  return false;
 }
 
 /**
@@ -396,37 +412,38 @@ const SCIENCE_OF_SCARE_BENCHMARKS: Array<{
   },
 ];
 
-// Léxico Semântico Bilíngue (PT + EN) para pontuar qualquer filme desconhecido
+// Léxico Semântico Bilíngue (PT + EN) para pontuar qualquer filme de terror
 const LEXICON = {
   psychological: [
     'psicolog', 'psychological', 'loucura', 'madness', 'insan', 'paranoia',
-    'trauma', 'luto', 'grief', 'isolad', 'isolated', 'mente', 'mind',
-    'alucinac', 'hallucin', 'pesadelo', 'nightmare', 'delirio', 'culpa',
-    'obsess', 'medo', 'pavor', 'dread', 'perturbador', 'disturbing', 'suicid',
+    'trauma', 'luto', 'grief', 'isolamento', 'isolated',
+    'alucinac', 'hallucin', 'pesadelo', 'nightmare', 'delirio',
+    'obsess', 'pavor', 'dread', 'perturbador', 'disturbing',
   ],
   supernatural: [
-    'demon', 'possess', 'espirit', 'spirit', 'fantasma', 'ghost', 'assombra',
-    'haunt', 'maldic', 'curse', 'entidade', 'entity', 'ocult', 'occult',
-    'ritual', 'brux', 'witch', 'exorcis', 'inferno', 'hell', 'paranormal',
-    'sobrenatural', 'supernatural', 'seita', 'cult', 'invocac', 'diabo', 'devil',
-    'macabr', 'necrot', 'morgue', 'vulto', 'sombra', 'profec', 'omen',
+    'demonio', 'demoniac', 'possessao', 'possuid', 'espiritos', 'fantasma', 'ghost', 'assombra',
+    'haunt', 'maldicao', 'amaldiçoad', 'curse', 'entidade maligna', 'ocultismo', 'occult',
+    'ritual macabro', 'bruxa', 'witch', 'exorcis', 'inferno', 'paranormal',
+    'sobrenatural', 'supernatural', 'seita', 'invocac', 'diabo',
+    'macabr', 'necrot', 'morgue', 'vulto', 'profecia', 'omen',
   ],
   tension: [
-    'escurid', 'darkness', 'noite', 'night', 'porao', 'basement', 'sotao',
-    'attic', 'trancad', 'locked', 'persegu', 'stalk', 'susto', 'scare',
-    'silencio', 'silence', 'camera', 'gravac', 'footage', 'fita', 'tape',
-    'telefone', 'phone', 'floresta', 'forest', 'woods', 'corredor', 'hallway',
-    'sobreviv', 'survive', 'fuga', 'escape', 'madrugada', '3:00', '3:33',
+    'escuridao', 'darkness', 'porao', 'basement', 'sotao',
+    'attic', 'trancad', 'perseguic', 'stalk', 'susto', 'jump scare',
+    'silencio mortal', 'found footage', 'fita amaldicoada',
+    'floresta sombria', 'corredor escuro',
+    'sobrevivencia', 'madrugada', '3:00', '3:33',
   ],
   visceral: [
-    'sangue', 'blood', 'morte', 'death', 'dead', 'cadaver', 'corpse', 'body',
-    'autopsia', 'autopsy', 'assassin', 'killer', 'murder', 'slasher', 'massacre',
-    'tortur', 'mutil', 'carne', 'flesh', 'brutal', 'violenc', 'gore', 'faca',
-    ' serial ', 'visceral', 'terrifier', 'esquartej',
+    'sangue', 'blood', 'cadaver', 'corpse',
+    'autopsia', 'autopsy', 'serial killer', 'slasher', 'massacre',
+    'tortur', 'mutil', 'brutal', 'gore',
+    'visceral', 'terrifier', 'esquartej',
   ],
   mildIndicators: [
     'comedia', 'comedy', 'parodia', 'familia', 'aventura', 'infantil',
-    'animacao', 'fantasia', 'romance', 'musical', 'tim burton', 'scary movie',
+    'animacao', 'fantasia', 'romance', 'musical', 'documentario', 'documentary',
+    'ficcao cientifica', 'sci-fi', 'tim burton', 'scary movie',
   ],
 };
 
@@ -444,18 +461,8 @@ const ACCLAIMED_HORROR_DIRECTORS = [
   'oz perkins',
   'osgood perkins',
   'parker finn',
-  'sam raimi',
   'wes craven',
   'john carpenter',
-  'stanley kubrick',
-  'guillermo del toro',
-  'andre ovredal',
-  'jaume balaguero',
-  'paco plaza',
-  'takashi shimizu',
-  'hideo nakata',
-  'kiyoshi kurosawa',
-  'jordan peele',
   'fede alvarez',
   'zach cregger',
 ];
@@ -513,31 +520,49 @@ export function analyzeMovieHorrorAI(params: {
     fullText.includes(d)
   );
 
-  // Check if this is a Non-Horror Cinema movie!
+  const strictHorrorPlotHits = STRICT_HORROR_PLOT_TERMS.filter((w) =>
+    fullText.includes(w)
+  ).length;
+
+  const isExplicitNonHorror = KNOWN_NON_HORROR_KEYWORDS.some((k) =>
+    fullText.includes(k)
+  );
+
+  // Strictly classify as Horror ONLY when there is unmistakable horror evidence!
   const detectedHorror =
-    Boolean(benchmark) ||
-    hasHorrorDirector ||
-    KNOWN_HORROR_KEYWORDS.some((k) => titleNorm.includes(k)) ||
-    (/\b(horror|terror|slasher|thriller sobrenatural)\b/i.test(params.genre || '') &&
-      !KNOWN_NON_HORROR_KEYWORDS.some((k) => titleNorm.includes(k))) ||
-    (superHits + visceralHits + psychHits >= 2 &&
-      mildHits === 0 &&
-      !KNOWN_NON_HORROR_KEYWORDS.some((k) => titleNorm.includes(k)));
+    !isExplicitNonHorror &&
+    (Boolean(benchmark) ||
+      hasHorrorDirector ||
+      KNOWN_HORROR_KEYWORDS.some((k) => titleNorm.includes(k)) ||
+      titleNorm === 'us' ||
+      titleNorm === 'saw' ||
+      titleNorm === 'sorria' ||
+      titleNorm === 'smile' ||
+      titleNorm === 'corra' ||
+      titleNorm === 'heresy' ||
+      /\b(horror|terror|slasher)\b/i.test(params.genre || '') ||
+      (strictHorrorPlotHits >= 2 && mildHits === 0));
 
   if (!detectedHorror) {
-    // CINÊMETRO AI MODE (Non-Horror Movies: Animation, Comedy, Musical, Sci-Fi, Romance, Drama, Adventure)
+    // CINÊMETRO AI MODE (Non-Horror Movies: Documentary, Sci-Fi, Drama, Animation, Comedy, Musical, Romance, Adventure)
     const cineTags: HorrorTag[] = [];
     if (/animac|animation|raposo|fox|megamind|megamente|totoro|ghibli|robo selvagem|wild robot|minion|pixar|dreamworks/i.test(fullText)) {
       cineTags.push('Animação');
     }
-    if (/comedia|comedy|funny|engracad|raposo|megamind|megamente|pitch perfect|escolha perfeita|minion/i.test(fullText)) {
+    if (/comedia|comedy|funny|engracad|humor|satir|raposo|megamind|megamente|pitch perfect|escolha perfeita|minion|nathan fielder/i.test(fullText)) {
       cineTags.push('Comédia');
     }
     if (/musical|musica|cant|banda|surf|teen beach|pitch perfect|escolha perfeita|a capella|barden/i.test(fullText)) {
       cineTags.push('Musical');
     }
-    if (/ficcao|sci-fi|multivers|everything everywhere|tudo em todo|robo|robot|espac|futur/i.test(fullText)) {
+    if (/ficcao|sci-fi|multivers|everything everywhere|tudo em todo|robo|robot|espac|futur|tecnolog/i.test(fullText)) {
       cineTags.push('Ficção Científica');
+    }
+    if (/documentario|documentary|vida real|bastidores|camera|you can see everything|nathan fielder|lance oppenheim|a24/i.test(fullText)) {
+      cineTags.push('Cult');
+    }
+    if (/misterio|mystery|conspirac|segred|investigac|suspense|thriller/i.test(fullText)) {
+      cineTags.push('Mistério');
     }
     if (/aventura|adventure|jornada|ilha|floresta|viagem/i.test(fullText)) {
       cineTags.push('Aventura');
@@ -548,26 +573,34 @@ export function analyzeMovieHorrorAI(params: {
     if (/fantasia|magia|totoro|espiritos da floresta/i.test(fullText)) {
       cineTags.push('Fantasia');
     }
-    if (/drama|familia|emocion/i.test(fullText)) {
+    if (/drama|familia|emocion|vida|human/i.test(fullText)) {
       cineTags.push('Drama');
     }
     if (cineTags.length === 0) {
-      cineTags.push('Cult', 'Aventura', 'Comédia');
+      cineTags.push('Cult', 'Drama', 'Aventura');
     }
     const uniqueCineTags = Array.from(new Set(cineTags)).slice(0, 3) as HorrorTag[];
     const cineSubgenre = `${uniqueCineTags[0]}${uniqueCineTags[1] ? ` & ${uniqueCineTags[1]}` : ''}`;
 
+    const seed = titleNorm.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
     const cineBreakdown: HorrorAIBreakdown = {
-      psychological: 92, // Emoção & Coração
-      supernatural: 90,  // Carisma & Humor
-      tension: 94,       // Direção & Visual
-      visceral: 89,      // Ritmo & Trilha Sonora
+      psychological: 86 + (seed % 12),        // Emoção & Coração
+      supernatural: 84 + ((seed * 3) % 14),   // Carisma & Humor
+      tension: 88 + ((seed * 7) % 11),        // Direção & Visual
+      visceral: 85 + ((seed * 5) % 13),       // Ritmo & Trilha Sonora
     };
+    const avgCharm = Math.round(
+      (cineBreakdown.psychological +
+        cineBreakdown.supernatural +
+        cineBreakdown.tension +
+        cineBreakdown.visceral) /
+        4
+    );
 
     return {
-      fearLevel: 5,
+      fearLevel: avgCharm >= 90 ? 5 : 4,
       bpm: 96,
-      aiVerdict: `Cinêmetro IA (94% de Encanto • Sessão Pipoca VIP): Obra-prima de ${cineSubgenre.toLowerCase()} cheia de carisma, visual marcante e trilha sonora perfeita para assistir juntinhos no Grand Cine Olhinhos!`,
+      aiVerdict: `Cinêmetro IA (${avgCharm}% de Sintonia • Sessão VIP): Produção envolvente de ${cineSubgenre.toLowerCase()} com direção criativa, ótima atmosfera e roteiro marcante para assistir juntinhos no Grand Cine Olhinhos!`,
       aiBreakdown: cineBreakdown,
       tags: uniqueCineTags,
       subgenre: cineSubgenre,
@@ -653,7 +686,7 @@ export function analyzeMovieHorrorAI(params: {
   const tags: HorrorTag[] = [];
   if (breakdown.supernatural >= 68) tags.push('Sobrenatural');
   if (breakdown.psychological >= 70) tags.push('Psicológico');
-  if (fullText.includes('demon') || fullText.includes('exorcis') || fullText.includes('cult') || fullText.includes('brux')) {
+  if (fullText.includes('demon') || fullText.includes('exorcis') || fullText.includes('seita') || fullText.includes('ocultismo') || fullText.includes('brux')) {
     tags.push('Religioso');
   }
   if (fullText.includes('floresta') || fullText.includes('folclor') || fullText.includes('aldeia') || fullText.includes('pag')) {

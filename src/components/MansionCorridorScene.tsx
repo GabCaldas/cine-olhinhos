@@ -1009,7 +1009,11 @@ export const MansionCorridorScene: React.FC<MansionCorridorSceneProps> = ({
                       <Star className="w-3 h-3 fill-black text-black" />
                       {currentMovie.imdbRating || '7.2'}
                     </span>
-                    <span className="text-amber-300 truncate">{currentMovie.subgenre}</span>
+                    <span className="text-amber-300 truncate">
+                      {!currentIsHorror && currentMovie.subgenre?.startsWith('Terror')
+                        ? 'Cult & Cinema'
+                        : currentMovie.subgenre}
+                    </span>
                     <span className="text-zinc-500">•</span>
                     <span className="text-zinc-300">
                       {currentMovie.year} ({currentMovie.duration})
