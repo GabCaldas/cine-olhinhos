@@ -121,6 +121,8 @@ const KNOWN_HORROR_KEYWORDS = [
   'um lugar silencioso',
   'quiet place',
   'blair witch',
+  'fright night',
+  'a hora do espanto',
 ];
 
 const STRICT_HORROR_PLOT_TERMS = [

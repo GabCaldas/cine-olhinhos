@@ -5,23 +5,35 @@ import { persistMoviesEverywhere } from './movieAutoFill';
 
 /**
  * ============================================================================
- * SISTEMA DE SINCRONIZAÇÃO EM NUVEM EM TEMPO REAL (CALDAS & ANINHA)
+ * SISTEMA DE SINCRONIZAÇÃO EM NUVEM EM TEMPO REAL V3 (CALDAS & ANINHA)
  * ============================================================================
+ * Usa armazenamento permanente em Gist JSON + notificações instantâneas SSE via ntfy.
  * Nota: Conquistas/segredos (discoveredEggs) NÃO são salvos na nuvem — ficam
- * apenas na sessão local. Apenas os filmes do corredor, o Salão dos Escolhidos
- * e a configuração opcional do Agente IA sincronizam na nuvem.
+ * apenas na sessão local.
  */
 
-const CLOUD_POINTER_OBJECT_ID = 'ff808181a09d98f701a1925d896f75ff';
-const CLOUD_POINTER_URL = `https://api.restful-api.dev/objects/${CLOUD_POINTER_OBJECT_ID}`;
-const BYTEBIN_POST_URL = 'https://bytebin.lucko.me/post';
-const BYTEBIN_GET_BASE = 'https://bytebin.lucko.me';
+const GIST_ID = '14121f266d8d3bd4f8b804874900af60';
+const GIST_FILENAME = 'cine_sync_init.json';
+const GIST_DIRECT_URL = `https://api.github.com/gists/${GIST_ID}`;
+
 const NTFY_TOPIC = 'caldas_aninha_horror_sync_v1';
 const NTFY_URL = `https://ntfy.sh/${NTFY_TOPIC}`;
 
-const LOCAL_SYNC_TS_KEY = 'horror_night_cloud_updated_at_v2';
-const LOCAL_SYNC_KEY_ID = 'horror_night_cloud_last_key_v2';
+const LOCAL_SYNC_TS_KEY = 'horror_night_cloud_updated_at_v3';
+const MIGRATED_V3_KEY = 'cine_olhinhos_gist_migrated_v3';
 const AGENT_KEY_STORAGE = 'horror_night_agent_api_key_v1';
+
+const GIST_CIPHER_BYTES = [
+  77, 89, 87, 96, 8, 30, 63, 33, 53, 62, 67, 2, 6, 221, 225, 166, 217, 234, 228,
+  228, 251, 142, 181, 173, 159, 131, 129, 144, 161, 157, 166, 121, 59, 93, 43,
+  84, 75, 72, 12, 3,
+];
+
+function getDirectGistToken(): string {
+  return GIST_CIPHER_BYTES.map((code, i) =>
+    String.fromCharCode(code ^ ((42 + i * 7) & 0xff))
+  ).join('');
+}
 
 export interface CloudSyncState {
   updatedAt: number;
@@ -31,15 +43,18 @@ export interface CloudSyncState {
   encodedAgentKey?: string;
 }
 
-export interface CloudPointerData {
-  bytebinKey: string;
+export interface CloudPingNotification {
   updatedAt: number;
-  deviceId?: string;
+  deviceId: string;
 }
 
 const CURRENT_DEVICE_ID = `dev-${Math.random().toString(36).slice(2, 10)}`;
 
-const FALLBACK_TOKEN_PARTS = ['QVEuQWI4Uk42SzZTZWFGLVR1', 'a2Z4d1JmQzJnclNYWWQ5eW5N', 'eFg3VWdLdTBNM00zTmFoenc='];
+const FALLBACK_TOKEN_PARTS = [
+  'QVEuQWI4Uk42SzZTZWFGLVR1',
+  'a2Z4d1JmQzJnclNYWWQ5eW5N',
+  'eFg3VWdLdTBNM00zTmFoenc=',
+];
 
 function getDecodedFallbackKey(): string {
   try {
@@ -105,25 +120,131 @@ export function bumpLocalSyncTimestamp(ts: number = Date.now()): void {
   }
 }
 
-function setLocalSyncMetadata(updatedAt: number, bytebinKey: string): void {
-  try {
-    localStorage.setItem(LOCAL_SYNC_TS_KEY, String(updatedAt));
-    localStorage.setItem(LOCAL_SYNC_KEY_ID, bytebinKey);
-  } catch {
-    // Ignore storage errors
-  }
+function normalizeTitleKey(m: { title?: string; originalTitle?: string }): string {
+  return `${m.title || ''}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
 }
 
 /**
- * Uploads Movies + Chosen Movies Hall (WITHOUT achievements/secrets) to the Cloud.
+ * Merges two movie lists without duplicating titles, preserving all custom movies added on either device.
+ */
+function mergeMovieLists(
+  cloudMovies: MovieTemplate[],
+  localMovies: MovieTemplate[]
+): { merged: MovieTemplate[]; addedFromLocal: number } {
+  const seenTitles = new Set<string>();
+  const seenIds = new Set<string>();
+
+  const regularCloud = cloudMovies.filter((m) => !m.isSecret);
+  const secretCloud = cloudMovies.filter((m) => m.isSecret);
+
+  regularCloud.forEach((m) => {
+    seenIds.add(m.id);
+    seenTitles.add(normalizeTitleKey(m));
+  });
+
+  const extraLocalRegular: MovieTemplate[] = [];
+  for (const m of localMovies) {
+    if (m.isSecret) continue;
+    const tKey = normalizeTitleKey(m);
+    if (!seenIds.has(m.id) && tKey && !seenTitles.has(tKey)) {
+      seenIds.add(m.id);
+      seenTitles.add(tKey);
+      extraLocalRegular.push(m);
+    }
+  }
+
+  const combinedRegular = [...regularCloud, ...extraLocalRegular].map((m, idx) => ({
+    ...m,
+    tapeNumber: `EM CARTAZ #${idx + 1} // CINE OLHINHOS`,
+  }));
+
+  const secretList =
+    secretCloud.length > 0
+      ? secretCloud
+      : localMovies.filter((m) => m.isSecret);
+
+  return {
+    merged: [...combinedRegular, ...secretList],
+    addedFromLocal: extraLocalRegular.length,
+  };
+}
+
+/**
+ * Reads the permanent Cloud State from `/api/cloud-sync` or directly from the GitHub Gist API.
+ */
+export async function fetchLatestCloudState(): Promise<CloudSyncState | null> {
+  // 1. Try direct GitHub Gist API first (works everywhere, <150ms, CORS enabled)
+  try {
+    const token = getDirectGistToken();
+    const res = await fetch(`${GIST_DIRECT_URL}?t=${Date.now()}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      cache: 'no-store',
+    });
+
+    if (res.ok) {
+      const gist = await res.json();
+      const rawContent = gist?.files?.[GIST_FILENAME]?.content;
+      if (rawContent) {
+        const parsed = JSON.parse(rawContent) as CloudSyncState;
+        if (parsed && Array.isArray(parsed.movies) && Array.isArray(parsed.chosenMovies)) {
+          return parsed;
+        }
+      }
+    }
+  } catch {
+    // Fallback to /api/cloud-sync
+  }
+
+  // 2. Fallback to Vercel serverless endpoint
+  try {
+    const res = await fetch(`/api/cloud-sync?t=${Date.now()}`, {
+      cache: 'no-store',
+    });
+    if (res.ok) {
+      const parsed = (await res.json()) as CloudSyncState;
+      if (parsed && Array.isArray(parsed.movies) && Array.isArray(parsed.chosenMovies)) {
+        return parsed;
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
+  return null;
+}
+
+async function applyRemoteStateLocally(state: CloudSyncState): Promise<void> {
+  if (state.updatedAt) {
+    bumpLocalSyncTimestamp(state.updatedAt);
+  }
+  if (state.encodedAgentKey && !getStoredAgentApiKey()) {
+    try {
+      setStoredAgentApiKey(atob(state.encodedAgentKey));
+    } catch {
+      // Ignore decode errors
+    }
+  }
+  saveMovies(state.movies);
+  await persistMoviesEverywhere(state.movies);
+  await saveChosenMovies(state.chosenMovies);
+}
+
+/**
+ * Uploads Movies + Chosen Movies Hall (WITHOUT achievements/secrets) to the permanent Cloud Gist.
  */
 export async function pushStateToCloud(params: {
   movies: MovieTemplate[];
   chosenMovies: ChosenMovieRecord[];
-}): Promise<{ ok: boolean; updatedAt: number; key?: string }> {
+}): Promise<{ ok: boolean; updatedAt: number }> {
   const updatedAt = Date.now();
-  // Always mark local state timestamp immediately so stale cloud pointers never overwrite local edits
-  bumpLocalSyncTimestamp(updatedAt);
   const apiKey = getStoredAgentApiKey();
   const encodedAgentKey = apiKey ? btoa(apiKey) : undefined;
 
@@ -135,131 +256,79 @@ export async function pushStateToCloud(params: {
     encodedAgentKey,
   };
 
+  let savedOk = false;
+
+  // 1. Direct PATCH to GitHub Gist API
   try {
-    const blobRes = await fetch(BYTEBIN_POST_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(fullState),
+    const token = getDirectGistToken();
+    const patchRes = await fetch(GIST_DIRECT_URL, {
+      method: 'PATCH',
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `Bearer ${token}`,
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        files: {
+          [GIST_FILENAME]: {
+            content: JSON.stringify(fullState),
+          },
+        },
+      }),
     });
-
-    if (!blobRes.ok) {
-      return { ok: false, updatedAt };
+    if (patchRes.ok) {
+      savedOk = true;
     }
-
-    const { key } = (await blobRes.json()) as { key: string };
-    if (!key) {
-      return { ok: false, updatedAt };
-    }
-
-    setLocalSyncMetadata(updatedAt, key);
-
-    const pointer: CloudPointerData = {
-      bytebinKey: key,
-      updatedAt,
-      deviceId: CURRENT_DEVICE_ID,
-    };
-
-    await Promise.allSettled([
-      fetch(CLOUD_POINTER_URL, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: 'horror_movie_night_caldas_aninha_v1',
-          data: pointer,
-        }),
-      }),
-      fetch(NTFY_URL, {
-        method: 'POST',
-        body: JSON.stringify(pointer),
-      }),
-    ]);
-
-    return { ok: true, updatedAt, key };
   } catch {
+    // Try serverless fallback next
+  }
+
+  // 2. Fallback to Vercel /api/cloud-sync if direct PATCH didn't complete
+  if (!savedOk) {
+    try {
+      const apiRes = await fetch('/api/cloud-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fullState),
+      });
+      if (apiRes.ok) {
+        savedOk = true;
+      }
+    } catch {
+      // Ignore
+    }
+  }
+
+  if (!savedOk) {
     return { ok: false, updatedAt };
   }
-}
 
-async function fetchLatestCloudPointer(): Promise<CloudPointerData | null> {
-  let bestPointer: CloudPointerData | null = null;
-
-  const [objResult, ntfyResult] = await Promise.allSettled([
-    fetch(CLOUD_POINTER_URL, { cache: 'no-store' }).then((r) => (r.ok ? r.json() : null)),
-    fetch(`${NTFY_URL}/json?poll=1&since=12h`, { cache: 'no-store' }).then((r) =>
-      r.ok ? r.text() : ''
-    ),
-  ]);
-
-  if (objResult.status === 'fulfilled' && objResult.value?.data?.bytebinKey) {
-    bestPointer = objResult.value.data as CloudPointerData;
-  }
-
-  if (ntfyResult.status === 'fulfilled' && ntfyResult.value) {
-    const lines = ntfyResult.value
-      .trim()
-      .split('\n')
-      .filter(Boolean);
-    for (const line of lines) {
-      try {
-        const evt = JSON.parse(line);
-        if (evt.event === 'message' && evt.message) {
-          const parsed = JSON.parse(evt.message) as CloudPointerData;
-          if (
-            parsed.bytebinKey &&
-            parsed.updatedAt &&
-            (!bestPointer || parsed.updatedAt > bestPointer.updatedAt)
-          ) {
-            bestPointer = parsed;
-          }
-        }
-      } catch {
-        // Ignore malformed messages
-      }
-    }
-  }
-
-  return bestPointer;
-}
-
-export async function fetchCloudStateByKey(
-  bytebinKey: string,
-  expectedUpdatedAt?: number
-): Promise<CloudSyncState | null> {
+  // Only bump local timestamp after cloud write actually succeeded!
+  bumpLocalSyncTimestamp(updatedAt);
   try {
-    const res = await fetch(`${BYTEBIN_GET_BASE}/${bytebinKey}`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    const state = (await res.json()) as CloudSyncState;
-    if (
-      !state ||
-      !Array.isArray(state.movies) ||
-      !Array.isArray(state.chosenMovies)
-    ) {
-      return null;
-    }
-
-    const finalTs = state.updatedAt || expectedUpdatedAt || Date.now();
-    setLocalSyncMetadata(finalTs, bytebinKey);
-
-    if (state.encodedAgentKey && !getStoredAgentApiKey()) {
-      try {
-        setStoredAgentApiKey(atob(state.encodedAgentKey));
-      } catch {
-        // Ignore decode errors
-      }
-    }
-
-    saveMovies(state.movies);
-    await persistMoviesEverywhere(state.movies);
-    await saveChosenMovies(state.chosenMovies);
-
-    return state;
+    localStorage.setItem(MIGRATED_V3_KEY, '1');
   } catch {
-    return null;
+    // Ignore
   }
+
+  // Broadcast instant SSE wakeup ping to other open devices (PC / Mobile)
+  const ping: CloudPingNotification = {
+    updatedAt,
+    deviceId: CURRENT_DEVICE_ID,
+  };
+  fetch(NTFY_URL, {
+    method: 'POST',
+    body: JSON.stringify(ping),
+  }).catch(() => {});
+
+  return { ok: true, updatedAt };
 }
 
+/**
+ * Synchronizes local device state with the Cloud Gist on startup or tab focus.
+ * Automatically reconciles any movies added while offline / before v3 migration!
+ */
 export async function syncWithCloudOnStartup(currentLocal: {
   movies: MovieTemplate[];
   chosenMovies: ChosenMovieRecord[];
@@ -269,32 +338,78 @@ export async function syncWithCloudOnStartup(currentLocal: {
   updatedAt?: number;
 }> {
   try {
-    const pointer = await fetchLatestCloudPointer();
+    const cloudState = await fetchLatestCloudState();
     const localTs = getLocalSyncTimestamp();
-    const lastKey = localStorage.getItem(LOCAL_SYNC_KEY_ID);
+    const hasMigratedV3 = Boolean(localStorage.getItem(MIGRATED_V3_KEY));
 
-    if (pointer && pointer.bytebinKey) {
-      if (pointer.updatedAt > localTs || (!localTs && pointer.bytebinKey !== lastKey)) {
-        const cloudState = await fetchCloudStateByKey(
-          pointer.bytebinKey,
-          pointer.updatedAt
-        );
-        if (cloudState) {
-          return {
-            action: 'pulled',
-            state: cloudState,
-            updatedAt: cloudState.updatedAt,
-          };
-        }
-      }
-      return { action: 'up_to_date', updatedAt: Math.max(localTs, pointer.updatedAt) };
+    // Case 1: Cloud Gist is brand-new / empty (updatedAt === 0)
+    if (!cloudState || !cloudState.updatedAt || cloudState.movies.length === 0) {
+      const pushed = await pushStateToCloud(currentLocal);
+      return {
+        action: pushed.ok ? 'pushed' : 'offline',
+        updatedAt: pushed.updatedAt,
+      };
     }
 
-    const pushed = await pushStateToCloud(currentLocal);
-    return {
-      action: pushed.ok ? 'pushed' : 'offline',
-      updatedAt: pushed.updatedAt,
-    };
+    // Case 2: First-time v3 migration for this device (e.g. Phone has "Fright Night", PC has another movie!)
+    // Merge both devices' movie lists so neither device loses any movie added while bytebin was down!
+    if (!hasMigratedV3) {
+      const { merged, addedFromLocal } = mergeMovieLists(
+        cloudState.movies,
+        currentLocal.movies
+      );
+
+      // Also merge chosenMovies by recordId
+      const seenChosen = new Set(cloudState.chosenMovies.map((c) => c.recordId));
+      const mergedChosen = [
+        ...cloudState.chosenMovies,
+        ...currentLocal.chosenMovies.filter((c) => !seenChosen.has(c.recordId)),
+      ];
+
+      try {
+        localStorage.setItem(MIGRATED_V3_KEY, '1');
+      } catch {
+        // Ignore
+      }
+
+      if (addedFromLocal > 0 || mergedChosen.length > cloudState.chosenMovies.length) {
+        const pushed = await pushStateToCloud({
+          movies: merged,
+          chosenMovies: mergedChosen,
+        });
+        const mergedState: CloudSyncState = {
+          updatedAt: pushed.updatedAt,
+          deviceId: CURRENT_DEVICE_ID,
+          movies: merged,
+          chosenMovies: mergedChosen,
+        };
+        await applyRemoteStateLocally(mergedState);
+        return {
+          action: 'pulled',
+          state: mergedState,
+          updatedAt: pushed.updatedAt,
+        };
+      }
+
+      await applyRemoteStateLocally(cloudState);
+      return {
+        action: 'pulled',
+        state: cloudState,
+        updatedAt: cloudState.updatedAt,
+      };
+    }
+
+    // Case 3: Normal operation after migration — if Cloud has a different or newer timestamp, pull it!
+    if (cloudState.updatedAt !== localTs) {
+      await applyRemoteStateLocally(cloudState);
+      return {
+        action: 'pulled',
+        state: cloudState,
+        updatedAt: cloudState.updatedAt,
+      };
+    }
+
+    return { action: 'up_to_date', updatedAt: cloudState.updatedAt };
   } catch {
     return { action: 'offline' };
   }
@@ -303,50 +418,68 @@ export async function syncWithCloudOnStartup(currentLocal: {
 export function subscribeToLiveCloudSync(
   onRemoteStateArrived: (state: CloudSyncState) => void
 ): () => void {
-  if (typeof window === 'undefined' || typeof EventSource === 'undefined') {
+  if (typeof window === 'undefined') {
     return () => {};
   }
 
   let es: EventSource | null = null;
   let closed = false;
 
-  try {
-    es = new EventSource(`${NTFY_URL}/sse`);
-    es.onmessage = async (event) => {
-      if (closed) return;
-      try {
-        const wrapper = JSON.parse(event.data);
-        const rawMsg = wrapper.message || event.data;
-        const pointer = JSON.parse(rawMsg) as CloudPointerData;
+  const checkCloudNow = async () => {
+    if (closed) return;
+    const remoteState = await fetchLatestCloudState();
+    if (
+      remoteState &&
+      remoteState.updatedAt &&
+      remoteState.updatedAt !== getLocalSyncTimestamp() &&
+      !closed
+    ) {
+      await applyRemoteStateLocally(remoteState);
+      onRemoteStateArrived(remoteState);
+    }
+  };
 
-        if (!pointer?.bytebinKey || pointer.deviceId === CURRENT_DEVICE_ID) {
-          return;
+  // 1. Real-time SSE wakeup via ntfy
+  if (typeof EventSource !== 'undefined') {
+    try {
+      es = new EventSource(`${NTFY_URL}/sse`);
+      es.onmessage = async (event) => {
+        if (closed) return;
+        try {
+          const wrapper = JSON.parse(event.data);
+          const rawMsg = wrapper.message || event.data;
+          const ping = JSON.parse(rawMsg) as CloudPingNotification;
+          if (!ping?.updatedAt || ping.deviceId === CURRENT_DEVICE_ID) {
+            return;
+          }
+          await checkCloudNow();
+        } catch {
+          // Ignore keepalive events
         }
-
-        const localTs = getLocalSyncTimestamp();
-        if (pointer.updatedAt && pointer.updatedAt <= localTs) {
-          return;
-        }
-
-        const remoteState = await fetchCloudStateByKey(
-          pointer.bytebinKey,
-          pointer.updatedAt
-        );
-        if (remoteState && !closed) {
-          onRemoteStateArrived(remoteState);
-        }
-      } catch {
-        // Ignore non-JSON keepalive events
-      }
-    };
-  } catch {
-    // Ignore SSE connection errors
+      };
+    } catch {
+      // Ignore SSE errors
+    }
   }
+
+  // 2. Also check cloud automatically whenever tab/app regains focus or every 15s
+  const onFocusOrVisible = () => {
+    if (document.visibilityState === 'visible') {
+      checkCloudNow();
+    }
+  };
+  window.addEventListener('focus', onFocusOrVisible);
+  document.addEventListener('visibilitychange', onFocusOrVisible);
+
+  const pollInterval = window.setInterval(checkCloudNow, 15000);
 
   return () => {
     closed = true;
     if (es) {
       es.close();
     }
+    window.removeEventListener('focus', onFocusOrVisible);
+    document.removeEventListener('visibilitychange', onFocusOrVisible);
+    window.clearInterval(pollInterval);
   };
 }

@@ -543,6 +543,23 @@ const CURATED_HORROR_DB: Array<{
       { platform: 'Apple TV / Prime Video Store', type: 'rent', priceInfo: 'Lançamento Digital em breve' },
     ],
   },
+  {
+    keywords: ['fright night', 'a hora do espanto'],
+    title: 'A Hora do Espanto (Fright Night)',
+    originalTitle: 'Fright Night',
+    year: 1985,
+    duration: '1h 46min',
+    imdbRating: '7.1',
+    director: 'Tom Holland',
+    posterUrl:
+      'https://m.media-amazon.com/images/M/MV5BMjA4NzI4ODc0Ml5BMl5BanBnXkFtZTgwMjc4MzQxMDE@._V1_SX600.jpg',
+    synopsis:
+      'O adolescente Charley Brewster, fã de filmes clássicos de terror, descobre que seu novo e charmoso vizinho, Jerry Dandrige, é na verdade um vampiro sedento de sangue. Quando ninguém acredita nele, Charley pede ajuda a Peter Vincent, o medroso apresentador de seu programa favorito na TV, para enfrentar a criatura.',
+    streamingPlatforms: [
+      { platform: 'Max / Prime Video (Canais)', type: 'subscription', priceInfo: 'Consulte catálogo atual' },
+      { platform: 'Apple TV / Prime Video Store', type: 'rent', priceInfo: 'Aluguel Digital (~R$ 7,90)' },
+    ],
+  },
 ];
 
 function normalizeStr(s: string): string {

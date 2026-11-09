@@ -93,6 +93,7 @@ export function App() {
 
   // Cloud Sync state
   const [cloudStatus, setCloudStatus] = useState<'syncing' | 'online' | 'offline'>('syncing');
+  const [isInitialCloudSyncDone, setIsInitialCloudSyncDone] = useState<boolean>(false);
   const moviesRef = useRef(movies);
   moviesRef.current = movies;
   const chosenRef = useRef(chosenRecords);
@@ -129,6 +130,7 @@ export function App() {
       } else {
         setCloudStatus('offline');
       }
+      setIsInitialCloudSyncDone(true);
     }
 
     initCloudSync();
@@ -151,6 +153,7 @@ export function App() {
   const repairedIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
+    if (!isInitialCloudSyncDone) return;
     let cancelled = false;
     async function enrichAndRepairMovies() {
       const needsTemplateRepair = (m: MovieTemplate) => {
@@ -366,7 +369,7 @@ export function App() {
     return () => {
       cancelled = true;
     };
-  }, [movies, chosenRecords]);
+  }, [movies, chosenRecords, isInitialCloudSyncDone]);
 
   // Secret keyboard shortcut for Caldas (Ctrl+M or Cmd+M)
   useEffect(() => {
